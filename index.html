@@ -177,8 +177,12 @@
   <div class="header-right">
     <input id="sheet-url" type="text" placeholder="Google Sheet CSV URL…"
       value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ94KIxEH-9Gssi6ZRaNqBJp91G4hsgyMVhpST68IhN27Daly4UR31xGLYcWOYSL_Ba3wCXeOYvRDor/pub?output=csv"/>
-    <button class="btn btn-accent" onclick="loadSheet()">Load</button>
-    <span id="status">Loading…</span>
+    <button class="btn btn-accent" onclick="loadSheet()">Load URL</button>
+    <label style="background:#4caf82;color:#0e0e10;font-weight:600;font-size:12px;padding:5px 13px;border-radius:4px;cursor:pointer;white-space:nowrap;margin:0">
+      📂 Load CSV File
+      <input type="file" accept=".csv" onchange="loadCSVFile(this)" style="display:none"/>
+    </label>
+    <span id="status">Ready</span>
   </div>
 </header>
 
