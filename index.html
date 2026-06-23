@@ -696,6 +696,137 @@ function findKB(songName){
   return null;
 }
 
+// Persistent show notes stored in localStorage
+const SHOW_NOTES_KEY = 'drsetlist_shownotes';
+let showNotes = {};
+try { showNotes = JSON.parse(localStorage.getItem(SHOW_NOTES_KEY)||'{}'); } catch(e){}
+
+function getShowNote(songName) {
+  const key = songName.toLowerCase().trim();
+  return showNotes[key] || '';
+}
+
+function saveShowNote(songName, note) {
+  const key = songName.toLowerCase().trim();
+  showNotes[key] = note;
+  localStorage.setItem(SHOW_NOTES_KEY, JSON.stringify(showNotes));
+}
+
+function suggestBanter(song, position, totalSongs, setIndex) {
+  const genre = (song['Genre']||'').toLowerCase();
+  const title = song['Song']||'';
+  const artist = song['Artist']||'';
+  const isPatriotic = !!(song['Patriotic']||'').trim();
+  const isFirst = position === 0;
+  const isLast = position === totalSongs - 1;
+  const isSetOpener = position === 0;
+  const pct = position / Math.max(totalSongs-1, 1);
+
+  // Check gig context
+  const atag = id => { const el=document.getElementById(id); return el?[...el.querySelectorAll('.tag.active')].map(t=>t.textContent.toLowerCase()):[];};
+  const eventTypes = atag('event-type-tags').join(' ');
+  const isMilitary = /military|ceremony/.test(eventTypes);
+  const isWedding = /wedding/.test(eventTypes);
+  const isConcert = /concert|festival/.test(eventTypes);
+
+  const rand = arr => arr[Math.floor(Math.random()*arr.length)];
+
+  let banter = '';
+
+  // OPENER banter
+  if(isSetOpener && setIndex === 0) {
+    const openers = [
+      "Good evening everybody, we are Downrange and we are SO glad to be here with you tonight!",
+      "How's everybody feeling tonight?! Let's GO!",
+      "Welcome everybody — we are Downrange, and we're gonna have a great time tonight!"
+    ];
+    banter = rand(openers);
+    if(isMilitary) banter += " We are honored to be here with the finest men and women in the world.";
+  } else if(isSetOpener && setIndex > 0) {
+    banter = rand(["We're back! You ready?!", "Alright, who's ready for more?!", "Round " + (setIndex+1) + " — let's go!"]);
+  }
+
+  // CLOSER banter
+  else if(isLast) {
+    const closers = [
+      "One more for ya — make some noise!",
+      "Last one of the set — give everything you got!",
+      "We'll be right back — but first, one more!"
+    ];
+    banter = rand(closers);
+  }
+
+  // PATRIOTIC songs
+  else if(isPatriotic || /soldier|america|patriot|freedom|stripes|banner/i.test(title)) {
+    if(isMilitary) {
+      banter = rand([
+        "We want to take a moment to honor everyone in this room who has served or is currently serving. This one's for you.",
+        "To every veteran and active duty service member here tonight — thank you. This song is for you.",
+        "This next song goes out to the brave men and women who protect our freedom every single day."
+      ]);
+    } else {
+      banter = "This next one is a tribute to all the men and women who serve our country.";
+    }
+  }
+
+  // WEDDING songs
+  else if(isWedding && /love|beautiful|better|forever|always/i.test(title)) {
+    banter = rand([
+      "This one goes out to the happy couple — " + (document.getElementById('gig-name').value||'tonight's newlyweds') + "!",
+      "Grab your partner for this one!",
+      "All the couples on the floor for this one!"
+    ]);
+  }
+
+  // CROWD ENERGY by genre
+  else if(/funk|r&b|soul|motown/.test(genre)) {
+    banter = rand([
+      "I need everybody on their feet for this one!",
+      "Let me see you move! Clap with us — 2 and 4!",
+      "This is a FEEL GOOD song, people. Let's hear you!"
+    ]);
+  }
+
+  else if(/classic rock|rock/.test(genre)) {
+    banter = rand([
+      "How many rock fans we got in here tonight?!",
+      "This one goes all the way back — you know the words, sing it with us!",
+      "Let's hear some noise for this classic!"
+    ]);
+  }
+
+  else if(/country/.test(genre)) {
+    banter = rand([
+      "Any country fans in the house tonight?!",
+      "This one's for the country lovers — you know who you are!",
+      "Put your hands up if you love country music!"
+    ]);
+  }
+
+  else if(/pop/.test(genre)) {
+    banter = rand([
+      "This next song you definitely know — sing it with us!",
+      "Everybody knows this one — let's hear you!",
+      "Come on, don't be shy — sing along!"
+    ]);
+  }
+
+  // SINGER INTRO (mid-set, every ~5 songs)
+  if(position > 0 && position % 5 === 0 && !banter) {
+    const singers = (availableSingers.length ? availableSingers : []);
+    if(singers.length) {
+      const singer = singers[position % singers.length];
+      banter = rand([
+        `Give it up for the incredible ${singer}!`,
+        `Let's hear some love for ${singer}!`,
+        `${singer} everybody — isn't she/he incredible?!`
+      ]);
+    }
+  }
+
+  return banter;
+}
+
 // ── ENERGY + GENRE ──
 function getEnergyLevel(s){
   const g=(s['Genre']||'').toLowerCase();
@@ -864,7 +995,8 @@ function addSong(enc){
     : availableSingers.filter(s=>{const v=(song[s]||'').toUpperCase(); return v==='X'||v==='X?';}).slice(0,1);
   const si=runsheet.filter(r=>r.type==='song').length>0
     ? runsheet.filter(r=>r.type==='song').slice(-1)[0].setIndex : 0;
-  runsheet.push({type:'song',song,setIndex:si,singers:defaultSinger,singer:defaultSinger[0]||'',flowNote:'',aiNote:''});
+  const savedNote=getShowNote(song['Song']);
+  runsheet.push({type:'song',song,setIndex:si,singers:defaultSinger,singer:defaultSinger[0]||'',flowNote:savedNote,aiNote:''});
   renderRunsheet(); renderLibrary();
 }
 
@@ -974,7 +1106,11 @@ function assignSinger(song,singerCount,maxPS){
 function arrangeWithFlow(picked){
   if(!picked.length) return picked;
   const opener=picked.find(x=>x.role==='OPENER')||picked[0];
-  const closer=[...picked].reverse().find(x=>x.role==='CLOSER')||picked[picked.length-1];
+  // Strongest closer goes last — never let a CLOSER song end up in middle
+  const closerCandidates=picked.filter(x=>x.role==='CLOSER');
+  const closer=closerCandidates.length
+    ? closerCandidates.sort((a,b)=>(b.kb&&b.kb.avg_position||0)-(a.kb&&a.kb.avg_position||0))[0]
+    : picked[picked.length-1];
   const middle=picked.filter(x=>x!==opener&&x!==closer);
   const arranged=[];
   let pool=[...middle];
@@ -1146,8 +1282,8 @@ function renderRunsheet(){
         <button class="run-remove" onclick="removeItem(${i})">×</button>
       </div>
       <div class="flow-note">
-        <textarea class="${noteClass}" rows="2" placeholder="Transition / show note…"
-          oninput="runsheet[${i}].flowNote=this.value;this.className='';autoResize(this)"
+        <textarea class="${noteClass}" rows="2" placeholder="Add banter, cues, or crowd direction… (saves permanently)"
+          oninput="runsheet[${i}].flowNote=this.value;saveShowNote(runsheet[${i}].song['Song'],this.value);this.className='';autoResize(this)"
         >${esc(noteVal)}</textarea>
       </div>
     </div>`;
@@ -1235,41 +1371,18 @@ function clearEncore(){
 function generateShowFlow(){
   const songs=runsheet.filter(r=>r.type==='song');
   if(!songs.length) return;
-  const atag=id=>{const el=document.getElementById(id); return el?[...el.querySelectorAll('.tag.active')].map(t=>t.textContent):[];};
-  const eventTypes=atag('event-type-tags').join(', ');
-  const isMilitary=/military|ceremony/i.test(eventTypes);
-  const isWedding=/wedding/i.test(eventTypes);
 
-  const rand=arr=>arr[Math.floor(Math.random()*arr.length)];
-  const phrases={
-    highToHigh:["Right into…","Don't let 'em breathe —","Keep it going —","No break —"],
-    highToMid:["Let it breathe… then…","Take it down with…","Bring it back with…"],
-    midToHigh:["Everybody up! —","Time to turn it up —","Let's go! —"],
-    midToLow:["Slow it down…","Here's one for you…","Take a moment with…"],
-    lowToMid:["Coming back with…","Let's pick it back up —"],
-    opener:["Kicking things off —","Good evening! —","Let's get it started —"],
-    closer:["Closing out the set —","Last one before the break —","To close us out —"],
-    military:["Thank you for your service.","This one's for everyone who's served.","We are honored to be here tonight."],
-    wedding:["To the happy couple!","Get on the floor for this one!","This one's for the newlyweds —"],
-  };
-
-  songs.forEach((r,i)=>{
-    if(r.flowNote) return;
-    const energy=getEnergyLevel(r.song);
-    const prevEnergy=i>0?getEnergyLevel(songs[i-1].song):energy;
-    const isFirst=i===0, isLast=i===songs.length-1;
-    let note='';
-    if(isFirst) note=rand(phrases.opener)+(isMilitary?' '+rand(phrases.military):'');
-    else if(isLast) note=rand(phrases.closer);
-    else if(prevEnergy===3&&energy===3) note=rand(phrases.highToHigh);
-    else if(prevEnergy===3&&energy<=2) note=rand(phrases.highToMid);
-    else if(prevEnergy<=2&&energy===3) note=rand(phrases.midToHigh);
-    else if(prevEnergy===2&&energy===1) note=rand(phrases.midToLow);
-    else if(prevEnergy===1&&energy>=2) note=rand(phrases.lowToMid);
-    else note='Into…';
-    if(isWedding&&i===Math.floor(songs.length/2)) note+=' '+rand(phrases.wedding);
-    if(isMilitary&&(r.song['Patriotic']||'').trim()&&!isFirst) note+=' '+rand(phrases.military);
-    r.aiNote=note;
+  let songIdx=0;
+  runsheet.forEach((r,i)=>{
+    if(r.type!=='song') return;
+    // Load saved note first, then suggest banter if empty
+    const saved = getShowNote(r.song['Song']);
+    if(saved) {
+      r.flowNote = saved;
+    } else if(!r.flowNote) {
+      r.aiNote = suggestBanter(r.song, songIdx, songs.length, r.setIndex);
+    }
+    songIdx++;
   });
   renderRunsheet();
 }
