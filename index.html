@@ -196,18 +196,18 @@
     <div class="section">
       <div class="section-title">Gig Details</div>
       <label>Event Name / Venue</label>
-      <input type="text" id="gig-name" placeholder="e.g. Fort Myer Military Ball"/>
+      <input type="text" id="gig-name" oninput="renderLibrary()" placeholder="e.g. Fort Myer Military Ball"/>
       <label>Date</label>
-      <input type="text" id="gig-date" placeholder="e.g. Nov 8, 2025"/>
+      <input type="text" id="gig-date" oninput="renderLibrary()" placeholder="e.g. Nov 8, 2025"/>
       <label>Event Type</label>
       <div class="tag-grid" id="event-type-tags">
-        <button class="tag" onclick="toggleTag(this)">Military Ball</button>
-        <button class="tag" onclick="toggleTag(this)">Ceremony</button>
-        <button class="tag" onclick="toggleTag(this)">Corporate</button>
-        <button class="tag" onclick="toggleTag(this)">Wedding</button>
-        <button class="tag" onclick="toggleTag(this)">Private Party</button>
-        <button class="tag" onclick="toggleTag(this)">Concert</button>
-        <button class="tag" onclick="toggleTag(this)">Outdoor Festival</button>
+        <button class="tag" onclick="toggleTag(this);renderLibrary()">Military Ball</button>
+        <button class="tag" onclick="toggleTag(this);renderLibrary()">Ceremony</button>
+        <button class="tag" onclick="toggleTag(this);renderLibrary()">Corporate</button>
+        <button class="tag" onclick="toggleTag(this);renderLibrary()">Wedding</button>
+        <button class="tag" onclick="toggleTag(this);renderLibrary()">Private Party</button>
+        <button class="tag" onclick="toggleTag(this);renderLibrary()">Concert</button>
+        <button class="tag" onclick="toggleTag(this);renderLibrary()">Outdoor Festival</button>
       </div>
     </div>
 
@@ -215,27 +215,27 @@
       <div class="section-title">Audience Vibe</div>
       <label>Political / Cultural Climate</label>
       <div class="tag-grid" id="climate-tags">
-        <button class="tag" onclick="toggleTag(this)">Conservative</button>
-        <button class="tag" onclick="toggleTag(this)">Liberal</button>
-        <button class="tag" onclick="toggleTag(this)">Mixed</button>
-        <button class="tag" onclick="toggleTag(this)">Patriotic</button>
-        <button class="tag" onclick="toggleTag(this)">Diverse</button>
+        <button class="tag" onclick="toggleTag(this);renderLibrary()">Conservative</button>
+        <button class="tag" onclick="toggleTag(this);renderLibrary()">Liberal</button>
+        <button class="tag" onclick="toggleTag(this);renderLibrary()">Mixed</button>
+        <button class="tag" onclick="toggleTag(this);renderLibrary()">Patriotic</button>
+        <button class="tag" onclick="toggleTag(this);renderLibrary()">Diverse</button>
       </div>
       <label>Age Range</label>
       <div class="tag-grid" id="age-tags">
-        <button class="tag" onclick="toggleTag(this)">All Ages</button>
-        <button class="tag" onclick="toggleTag(this)">Young Adults</button>
-        <button class="tag" onclick="toggleTag(this)">30s–50s</button>
-        <button class="tag" onclick="toggleTag(this)">Older Crowd</button>
+        <button class="tag" onclick="toggleTag(this);renderLibrary()">All Ages</button>
+        <button class="tag" onclick="toggleTag(this);renderLibrary()">Young Adults</button>
+        <button class="tag" onclick="toggleTag(this);renderLibrary()">30s–50s</button>
+        <button class="tag" onclick="toggleTag(this);renderLibrary()">Older Crowd</button>
       </div>
       <label>Energy Level</label>
       <div class="tag-grid" id="energy-tags">
-        <button class="tag" onclick="toggleTag(this)">High Energy</button>
-        <button class="tag" onclick="toggleTag(this)">Mix of Both</button>
-        <button class="tag" onclick="toggleTag(this)">Dinner / Chill</button>
+        <button class="tag" onclick="toggleTag(this);renderLibrary()">High Energy</button>
+        <button class="tag" onclick="toggleTag(this);renderLibrary()">Mix of Both</button>
+        <button class="tag" onclick="toggleTag(this);renderLibrary()">Dinner / Chill</button>
       </div>
       <label>Additional Context</label>
-      <textarea id="gig-notes" placeholder="e.g. Medal ceremony at 9pm, crowd will be seated for first set, general wants country songs…"></textarea>
+      <textarea id="gig-notes" oninput="renderLibrary()" placeholder="e.g. Medal ceremony at 9pm, crowd will be seated for first set, general wants country songs…"></textarea>
     </div>
 
     <div class="section">
@@ -459,6 +459,111 @@ function populateGenres() {
 }
 
 // ── LIBRARY ──
+function getGigScore(s) {
+  // Score each song 0-100 for relevance to current gig context
+  let score = 0;
+  const kb = findKB(s['Song']);
+  const playCount = kb ? kb.play_count : 0;
+  const genre = (s['Genre']||'').toLowerCase();
+  const isPatriotic = !!(s['Patriotic']||'').trim();
+  const isAcoustic = !!(s['Acoustic']||'').trim();
+  const hasHorns = !!(s['Horns']||'').trim();
+
+  // Get current gig context
+  const activeTags = (id) => [...(document.getElementById(id)||{querySelectorAll:()=>[]}).querySelectorAll('.tag.active')].map(t=>t.textContent.toLowerCase());
+  const eventTypes = activeTags('event-type-tags');
+  const climate = activeTags('climate-tags');
+  const ageRange = activeTags('age-tags');
+  const energy = activeTags('energy-tags');
+  const notes = (document.getElementById('gig-notes')||{value:''}).value.toLowerCase();
+
+  // Play history bonus (road-tested = reliable)
+  if (playCount >= 15) score += 30;
+  else if (playCount >= 8) score += 22;
+  else if (playCount >= 4) score += 15;
+  else if (playCount >= 2) score += 8;
+  else if (playCount === 1) score += 3;
+
+  // Band config match
+  if (bandConfig.horns === 'full' && hasHorns) score += 8;
+  if (bandConfig.guitars === 'cut' || bandConfig.keys === 'cut') {
+    if (kb && kb.cut_guitar_count > 0) score += 10;
+    else if (kb && kb.full_guitar_count >= 2 && kb.cut_guitar_count === 0) score -= 20;
+  }
+
+  // Event type relevance
+  if (eventTypes.includes('military ball') || eventTypes.includes('ceremony')) {
+    if (isPatriotic) score += 25;
+    if (genre.includes('country')) score += 10;
+    if (genre.includes('classic rock')) score += 8;
+    if (genre.includes('r&b') || genre.includes('funk')) score += 5;
+    if (notes.includes('patriotic') || notes.includes('military') || notes.includes('army')) score += 10;
+  }
+  if (eventTypes.includes('wedding')) {
+    if (!!(s['Wedding Band Vibes']||'').trim()) score += 20;
+    if (genre.includes('pop') || genre.includes('soul')) score += 8;
+    if (genre.includes('ballad')) score += 5;
+  }
+  if (eventTypes.includes('corporate') || eventTypes.includes('concert') || eventTypes.includes('outdoor festival')) {
+    if (genre.includes('pop') || genre.includes('rock')) score += 10;
+    if (genre.includes('funk') || genre.includes('r&b')) score += 8;
+  }
+
+  // Climate relevance
+  if (climate.includes('conservative') || climate.includes('patriotic')) {
+    if (isPatriotic) score += 20;
+    if (genre.includes('country')) score += 12;
+    if (genre.includes('classic rock')) score += 8;
+  }
+  if (climate.includes('liberal') || climate.includes('diverse')) {
+    if (genre.includes('r&b') || genre.includes('pop') || genre.includes('funk')) score += 10;
+    if (genre.includes('soul')) score += 8;
+  }
+  if (climate.includes('mixed')) {
+    // Crowd-pleasers do well with mixed
+    if (playCount >= 10) score += 10;
+  }
+
+  // Age range
+  if (ageRange.includes('young adults')) {
+    if (genre.includes('pop') || genre.includes('rock')) score += 10;
+    const year = parseInt(s['Year']||0);
+    if (year >= 2015) score += 8;
+    if (year >= 2020) score += 5;
+  }
+  if (ageRange.includes('30s–50s') || ageRange.includes('older crowd')) {
+    if (genre.includes('classic rock') || genre.includes('motown') || genre.includes('country')) score += 12;
+    const year = parseInt(s['Year']||0);
+    if (year >= 1970 && year <= 2005) score += 6;
+  }
+  if (ageRange.includes('all ages')) {
+    if (playCount >= 8) score += 8; // Proven crowd-pleasers
+  }
+
+  // Energy match
+  if (energy.includes('high energy')) {
+    if (genre.includes('rock') || genre.includes('funk') || genre.includes('pop')) score += 8;
+    if (genre.includes('ballad')) score -= 10;
+  }
+  if (energy.includes('dinner / chill')) {
+    if (genre.includes('ballad') || genre.includes('soul') || isAcoustic) score += 10;
+    if (genre.includes('hard rock') || genre.includes('metal')) score -= 15;
+  }
+
+  // Notes keywords
+  if (notes) {
+    const songName = s['Song'].toLowerCase();
+    const artist = (s['Artist']||'').toLowerCase();
+    if (notes.includes('patriotic') && isPatriotic) score += 15;
+    if (notes.includes('country') && genre.includes('country')) score += 12;
+    if (notes.includes('motown') && genre.includes('motown')) score += 12;
+    if (notes.includes('rock') && genre.includes('rock')) score += 10;
+    if (notes.includes('kids') && (genre.includes('kids') || playCount >= 5)) score += 8;
+  }
+
+  return score;
+}
+
 function renderLibrary() {
   const search = document.getElementById('search').value.toLowerCase();
   const singer = document.getElementById('filter-singer').value;
@@ -482,6 +587,13 @@ function renderLibrary() {
     return true;
   });
 
+  // Sort by gig relevance score
+  const hasGigContext = document.getElementById('event-type-tags') &&
+    document.getElementById('event-type-tags').querySelectorAll('.tag.active').length > 0;
+  if (!search && !singer && !genre && !flag) {
+    filtered.sort((a, b) => getGigScore(b) - getGigScore(a));
+  }
+
   const list = document.getElementById('song-list');
   if(!filtered.length){ list.innerHTML='<div class="empty-msg">No songs match.</div>'; return; }
 
@@ -495,8 +607,9 @@ function renderLibrary() {
     const added = inRunsheet.has(s['Song']);
     const enc = encodeURIComponent(JSON.stringify(s));
     
-    // History badge from KB
+    // History badge from KB + gig relevance score
     const kb = findKB(s['Song']);
+    const gigScore = getGigScore(s);
     let histBadge = '';
     let rowWarning = '';
     if(kb) {
@@ -504,7 +617,6 @@ function renderLibrary() {
       const cutSafe = kb.cut_guitar_count > 0;
       const hornsSafe = kb.without_horns_count > 0;
       
-      // Warning if cut-down but song rarely/never played cut
       if((bandConfig.guitars === 'cut' || bandConfig.keys === 'cut') && !cutSafe && kb.play_count >= 2) {
         rowWarning = ' style="background:rgba(224,85,85,0.07)"';
       }
@@ -513,9 +625,13 @@ function renderLibrary() {
       }
       
       const plays = kb.play_count;
-      histBadge = `<span class="hist-badge" title="${plays} plays, ${pct}% cut-safe">${plays}×</span>`;
+      // Color badge by score: green=hot, yellow=good, gray=neutral
+      const badgeStyle = gigScore >= 40 ? 'style="background:rgba(76,175,130,0.3);color:#4caf82;font-weight:800"' :
+                         gigScore >= 20 ? 'style="background:rgba(240,192,64,0.2);color:#f0c040"' : '';
+      histBadge = `<span class="hist-badge" ${badgeStyle} title="${plays} plays · Gig score: ${gigScore}">${plays}×</span>`;
     } else {
-      histBadge = '<span class="hist-badge new" title="No history yet">NEW</span>';
+      const badgeStyle = gigScore >= 20 ? 'style="background:rgba(240,192,64,0.2);color:#f0c040"' : '';
+      histBadge = `<span class="hist-badge new" ${badgeStyle} title="No history yet · Gig score: ${gigScore}">NEW</span>`;
     }
     
     return `<div class="song-row"${rowWarning}>
