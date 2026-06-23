@@ -498,6 +498,7 @@
         <button id="save-btn" class="btn btn-outline" onclick="saveGig()">Save</button>
         <button class="btn btn-outline" onclick="loadGig()">Load</button>
         <button class="btn btn-outline" onclick="clearRunsheet()">Clear</button>
+        <button class="btn btn-outline" onclick="exportCSV()">Export</button>
         <button class="btn btn-accent" onclick="updatePrintHeader(); window.print()">Print</button>
       </div>
     </div>
@@ -1355,7 +1356,8 @@ function buildSetlist() {
   for (const item of scored) {
     if (picked.length >= approxSongs) break;
     const s = item.song;
-    if (usedSongs.has(s['Song'])) continue;
+    const songKey = s['Song'].toLowerCase().trim();
+    if (usedSongs.has(songKey)) continue;
 
     const possibleSingers = (availableSingers.length ? availableSingers : ['Maya R','Rettig','Tue','Patterson','Melinda R'])
       .filter(singer => {
@@ -1369,14 +1371,45 @@ function buildSetlist() {
     if ((singerCount[singer]||0) >= maxPerSinger && availableSingers.length > 1) continue;
 
     singerCount[singer] = (singerCount[singer]||0) + 1;
-    usedSongs.add(s['Song']);
+    usedSongs.add(s['Song'].toLowerCase().trim());
     picked.push({ ...item, singer });
   }
 
-  // Apply energy arc per set: HIGH → MID → STRONG CLOSE
-  // Sort each set's songs: opener (high), body (mid), closer (high/big)
+  // Define genre families for soft grouping
+  const GENRE_FAMILIES = {
+    rock:    ['rock', 'classic rock', 'hard rock', 'punk', 'alternative', 'grunge'],
+    rnb:     ['r&b', 'soul', 'funk', 'motown', 'neo soul'],
+    country: ['country', 'country pop', 'country rock', 'bluegrass'],
+    pop:     ['pop', 'dance pop', 'synth pop', 'teen pop'],
+    hiphop:  ['hip hop', 'hip-hop', 'rap', 'trap'],
+    ballad:  ['ballad', 'power ballad', 'rock ballad'],
+    other:   ['jazz', 'classical', 'kids', 'instrumental', 'patriotic']
+  };
+
+  function getGenreFamily(s) {
+    const g = (s['Genre']||'').toLowerCase();
+    for (const [family, genres] of Object.entries(GENRE_FAMILIES)) {
+      if (genres.some(x => g.includes(x))) return family;
+    }
+    return 'other';
+  }
+
+  function familiesAreCompatible(a, b) {
+    // Families that flow naturally into each other
+    const compatible = {
+      rock: ['rock','pop','rnb','country'],
+      rnb:  ['rnb','soul','pop','hiphop','ballad'],
+      country: ['country','rock','pop','ballad'],
+      pop:  ['pop','rnb','rock','hiphop','country'],
+      hiphop: ['hiphop','rnb','pop'],
+      ballad: ['ballad','rnb','pop','country'],
+      other: ['other','pop','rock','rnb','country']
+    };
+    return (compatible[a]||[]).includes(b);
+  }
+
+  // Apply energy arc + genre grouping per set
   const songsPerSet = sets.map(set => Math.round(approxSongs * set.minutes / totalMins));
-  let songIdx = 0;
   const allPicked = [...picked];
 
   runsheet = [];
@@ -1385,32 +1418,45 @@ function buildSetlist() {
     const setSlice = allPicked.splice(0, count);
     if (!setSlice.length) return;
 
-    // Sort by energy arc: high openers, mid body, strong closer
+    // Separate by energy
     const highs = setSlice.filter(x => x.energy === 3);
     const mids  = setSlice.filter(x => x.energy === 2);
     const lows  = setSlice.filter(x => x.energy === 1);
 
-    let arranged = [];
-    // Opener: highest energy
-    if (highs.length) arranged.push(highs.shift());
-    else if (mids.length) arranged.push(mids.shift());
-    // Closer: another high or mid
-    const closerPool = [...highs, ...mids];
-    const closer = closerPool.length ? closerPool.pop() : null;
-    // Fill middle with remaining (mix lows and mids)
-    const middle = [...highs, ...mids, ...lows];
-    // Interleave: don't stack all lows together
-    const midArranged = [];
-    let lowCount = 0;
-    for (const s of middle) {
-      if (s.energy === 1 && lowCount >= 2) {
-        midArranged.unshift(s); lowCount = 0; // break up lows
-      } else {
-        midArranged.push(s);
-        if (s.energy === 1) lowCount++; else lowCount = 0;
+    // Pick opener (high energy) and closer (high or strong mid)
+    const opener = highs.shift() || mids.shift();
+    const closerPool = [...highs.filter(x=>x.score > 30), ...mids.filter(x=>x.score > 25)];
+    const closer = closerPool.length ? closerPool.sort((a,b)=>b.score-a.score)[0] : (highs[highs.length-1] || mids[mids.length-1]);
+    const remaining = [...highs, ...mids, ...lows].filter(x => x !== closer);
+
+    // Sort remaining by genre family proximity — minimize jarring jumps
+    const sorted = [];
+    let pool = [...remaining];
+    let lastFamily = opener ? getGenreFamily(opener.song) : 'pop';
+
+    while (pool.length) {
+      // Find best next song: same family first, then compatible, then anything
+      let next = pool.find(x => getGenreFamily(x.song) === lastFamily)
+              || pool.find(x => familiesAreCompatible(lastFamily, getGenreFamily(x.song)))
+              || pool[0];
+      sorted.push(next);
+      lastFamily = getGenreFamily(next.song);
+      pool = pool.filter(x => x !== next);
+
+      // After 2-3 same-family songs, allow a transition to avoid monotony
+      const sameCount = sorted.filter(x => getGenreFamily(x.song) === lastFamily).length;
+      if (sameCount >= 3 && pool.length > 1) {
+        // Force a genre shift — pick something from a different family
+        const different = pool.find(x => getGenreFamily(x.song) !== lastFamily);
+        if (different) {
+          sorted.push(different);
+          lastFamily = getGenreFamily(different.song);
+          pool = pool.filter(x => x !== different);
+        }
       }
     }
-    arranged = [arranged[0], ...midArranged, ...(closer ? [closer] : [])].filter(Boolean);
+
+    const arranged = [opener, ...sorted, closer].filter(Boolean);
 
     arranged.forEach(item => {
       runsheet.push({ type:'song', song: item.song, setIndex: si,
@@ -1520,7 +1566,7 @@ function toggleSinger(itemIdx, singer) {
 // ── DUPLICATE PROTECTION ──
 function addSong(enc) {
   const song = JSON.parse(decodeURIComponent(enc));
-  const already = runsheet.some(r => r.type === 'song' && r.song['Song'] === song['Song']);
+  const already = runsheet.some(r => r.type === 'song' && r.song['Song'].toLowerCase().trim() === song['Song'].toLowerCase().trim());
   if (already) {
     // Flash the existing song instead
     const items = document.querySelectorAll('.run-title');
@@ -1686,6 +1732,53 @@ function generateShowFlow() {
 
 // ── UPDATED RENDER RUNSHEET with singer buttons, key, horn star ──
 
+
+
+function exportCSV() {
+  const songs = runsheet.filter(r => r.type === 'song');
+  if (!songs.length) { alert('No songs to export.'); return; }
+
+  const gigName = document.getElementById('gig-name').value || 'Setlist';
+  const gigDate = document.getElementById('gig-date').value || '';
+  const producer = document.getElementById('gig-producer').value || '';
+
+  // Header info
+  let csv = `DR Setlist Export\n`;
+  csv += `"${gigDate}","${gigName}"\n`;
+  if (producer) csv += `"Producer:","${producer}"\n`;
+  csv += `\n`;
+  csv += `#,Song,Key,Artist,Singer(s),Horns,Genre,Catalog #,Set,Flow Note\n`;
+
+  let num = 1;
+  let currentSet = -1;
+  runsheet.forEach(r => {
+    if (r.type === 'break') { csv += `,"--- BREAK ---",,,,,,,,\n`; return; }
+    if (r.setIndex !== currentSet) {
+      currentSet = r.setIndex;
+      const setName = sets[currentSet] ? sets[currentSet].name : \`Set \${currentSet+1}\`;
+      csv += \`,"=== \${setName} ===",,,,,,,,\n\`;
+    }
+    const s = r.song;
+    const singers = (r.singers && r.singers.length ? r.singers : [r.singer||'']).join(' / ');
+    const note = (r.flowNote || r.aiNote || '').replace(/"/g, '""');
+    csv += \`\${num},"\${s['Song']||''}","\${s['Key']||''}","\${s['Artist']||''}","\${singers}","\${(s['Horns']||'').trim()?'Yes':''}","\${s['Genre']||''}","\${s['Catalog #']||''}","\${sets[r.setIndex]?.name||''}","\${note}"\n\`;
+    num++;
+  });
+
+  if (encoreSelected) {
+    const enc = allSongs.find(s => s['Song'] === encoreSelected);
+    if (enc) csv += \`,"=== ENCORE ===",,,,,,,,\n\`;
+    csv += \`E,"\${encoreSelected}",,,,,,,,\n\`;
+  }
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = \`\${gigDate ? gigDate + ' - ' : ''}\${gigName}.csv\`.replace(/[/:]/g, '-');
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 </script>
 </body>
