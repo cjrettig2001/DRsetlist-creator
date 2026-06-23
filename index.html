@@ -170,6 +170,67 @@
       .flow-note textarea { color: #444; border-left-color: #aaa; font-style: italic; background: transparent; }
       .break-block { background: #f5f5f5; }
     }
+  
+    /* ── WIZARD ── */
+    .wizard-step { border-bottom: 1px solid var(--border); }
+    .wizard-step.locked { opacity: 0.5; }
+    .wizard-step.locked .step-header { cursor: default; }
+    .wizard-step:not(.locked) .step-header { cursor: pointer; }
+
+    .step-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; transition: background 0.1s; }
+    .step-header:hover { background: var(--surface); }
+    .step-num { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #0e0e10; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .wizard-step.locked .step-num { background: var(--border); color: var(--muted); }
+    .wizard-step.complete .step-num { background: var(--green); }
+    .step-title { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 1.2px; flex: 1; }
+    .step-check { color: var(--green); font-size: 13px; font-weight: 700; }
+
+    .step-body { padding: 4px 16px 14px; display: flex; flex-direction: column; gap: 0; }
+    .step-body label { display: block; font-size: 10px; color: var(--muted); margin-bottom: 4px; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .step-body label:first-child { margin-top: 4px; }
+    .step-body input[type=text], .step-body textarea, .step-body select {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text); font-size: 13px; padding: 7px 9px;
+      outline: none; font-family: 'Inter', sans-serif;
+    }
+    .step-body input:focus, .step-body textarea:focus { border-color: var(--accent); }
+    .step-body textarea { resize: vertical; min-height: 60px; font-size: 12px; line-height: 1.5; }
+
+    .personnel-grid { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
+    .person-check { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; padding: 5px 8px; border-radius: 4px; border: 1px solid var(--border); transition: all 0.1s; }
+    .person-check:hover { border-color: var(--accent); background: var(--accent-dim); }
+    .person-check input { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
+    .person-check.checked { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); font-weight: 500; }
+
+    .personnel-summary { margin-top: 10px; padding: 8px 10px; background: var(--surface2); border-radius: 4px; font-size: 11px; color: var(--muted); line-height: 1.7; border: 1px solid var(--border); }
+    .personnel-summary .cut-warning { color: var(--accent); font-weight: 600; }
+
+    .wizard-next { margin-top: 12px; width: 100%; background: var(--accent); border: none; color: #0e0e10; border-radius: 4px; padding: 9px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; letter-spacing: 0.3px; }
+    .wizard-next:hover { background: #ffd060; }
+
+    .tag-grid { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+    .tag { padding: 4px 10px; border-radius: 3px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); color: var(--muted); background: none; transition: all 0.15s; }
+    .tag:hover { border-color: var(--accent); color: var(--accent); }
+    .tag.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+    .add-set-btn { font-size: 12px; color: var(--accent); background: none; border: 1px dashed var(--border); border-radius: 4px; padding: 5px; width: 100%; cursor: pointer; transition: all 0.1s; margin-top: 6px; }
+    .add-set-btn:hover { border-color: var(--accent); }
+    .set-row { display: grid; grid-template-columns: 1fr 80px 24px; align-items: center; gap: 6px; margin-bottom: 6px; }
+    .set-row input { margin: 0; }
+    .icon-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 2px; transition: color 0.1s; }
+    .icon-btn:hover { color: var(--danger); }
+
+    .cutdown-note { display:none; margin-top:10px; padding:7px 9px; background:rgba(240,192,64,0.1); border:1px solid rgba(240,192,64,0.4); border-radius:4px; font-size:11px; color:var(--accent); line-height:1.5; }
+
+    section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 1.2px; color: var(--muted); margin-bottom: 10px; }
+
+    /* ai generate area */
+    .ai-generate-area { padding: 14px 16px; }
+    .ai-generate-area .btn-ai { width: 100%; padding: 9px; font-size: 13px; }
+    .ai-spinner { display: none; text-align: center; color: var(--ai); font-size: 12px; margin-top: 8px; font-style: italic; }
+
   </style>
 </head>
 <body>
@@ -193,82 +254,133 @@
   <!-- ── LEFT: GIG SETUP ── -->
   <div class="gig-panel">
 
-    <div class="section">
-      <div class="section-title">Gig Details</div>
-      <label>Event Name / Venue</label>
-      <input type="text" id="gig-name" oninput="renderLibrary()" placeholder="e.g. Fort Myer Military Ball"/>
-      <label>Date</label>
-      <input type="text" id="gig-date" oninput="renderLibrary()" placeholder="e.g. Nov 8, 2025"/>
-      <label>Event Type</label>
-      <div class="tag-grid" id="event-type-tags">
-        <button class="tag" onclick="toggleTag(this);renderLibrary()">Military Ball</button>
-        <button class="tag" onclick="toggleTag(this);renderLibrary()">Ceremony</button>
-        <button class="tag" onclick="toggleTag(this);renderLibrary()">Corporate</button>
-        <button class="tag" onclick="toggleTag(this);renderLibrary()">Wedding</button>
-        <button class="tag" onclick="toggleTag(this);renderLibrary()">Private Party</button>
-        <button class="tag" onclick="toggleTag(this);renderLibrary()">Concert</button>
-        <button class="tag" onclick="toggleTag(this);renderLibrary()">Outdoor Festival</button>
+    <!-- STEP 1: BASICS -->
+    <div class="wizard-step" id="step-1">
+      <div class="step-header">
+        <span class="step-num">1</span>
+        <span class="step-title">Gig Basics</span>
+        <span class="step-check" id="check-1">✓</span>
+      </div>
+      <div class="step-body" id="body-1">
+        <label>Event Name</label>
+        <input type="text" id="gig-name" placeholder="e.g. Fort Myer Military Ball" oninput="updateStep1()"/>
+        <label>Date</label>
+        <input type="text" id="gig-date" placeholder="e.g. Nov 8, 2025" oninput="updateStep1()"/>
+        <label>Location / Venue</label>
+        <input type="text" id="gig-location" placeholder="e.g. Fort Myer, Arlington VA" oninput="updateStep1(); renderLibrary()"/>
+        <button class="wizard-next" onclick="openStep(2)">Next → Personnel</button>
       </div>
     </div>
 
-    <div class="section">
-      <div class="section-title">Audience Vibe</div>
-      <label>Political / Cultural Climate</label>
-      <div class="tag-grid" id="climate-tags">
-        <button class="tag" onclick="toggleTag(this);renderLibrary()">Conservative</button>
-        <button class="tag" onclick="toggleTag(this);renderLibrary()">Liberal</button>
-        <button class="tag" onclick="toggleTag(this);renderLibrary()">Mixed</button>
-        <button class="tag" onclick="toggleTag(this);renderLibrary()">Patriotic</button>
-        <button class="tag" onclick="toggleTag(this);renderLibrary()">Diverse</button>
+    <!-- STEP 2: PERSONNEL -->
+    <div class="wizard-step locked" id="step-2">
+      <div class="step-header" onclick="toggleStep(2)">
+        <span class="step-num">2</span>
+        <span class="step-title">Who's Playing</span>
+        <span class="step-check" id="check-2"></span>
       </div>
-      <label>Age Range</label>
-      <div class="tag-grid" id="age-tags">
-        <button class="tag" onclick="toggleTag(this);renderLibrary()">All Ages</button>
-        <button class="tag" onclick="toggleTag(this);renderLibrary()">Young Adults</button>
-        <button class="tag" onclick="toggleTag(this);renderLibrary()">30s–50s</button>
-        <button class="tag" onclick="toggleTag(this);renderLibrary()">Older Crowd</button>
+      <div class="step-body" id="body-2" style="display:none">
+
+        <label>Singers</label>
+        <div class="personnel-grid">
+          <label class="person-check"><input type="checkbox" value="Maya R" onchange="updatePersonnel()"/> Maya R</label>
+          <label class="person-check"><input type="checkbox" value="Rettig" onchange="updatePersonnel()"/> Rettig</label>
+          <label class="person-check"><input type="checkbox" value="Tue" onchange="updatePersonnel()"/> Tue</label>
+          <label class="person-check"><input type="checkbox" value="Patterson" onchange="updatePersonnel()"/> Patterson</label>
+          <label class="person-check"><input type="checkbox" value="Melinda R" onchange="updatePersonnel()"/> Melinda R</label>
+        </div>
+
+        <label style="margin-top:12px">Guitar</label>
+        <div class="personnel-grid">
+          <label class="person-check"><input type="checkbox" value="Waltemire" onchange="updatePersonnel()"/> George Waltemire</label>
+          <label class="person-check"><input type="checkbox" value="Leader" onchange="updatePersonnel()"/> Chad Leader</label>
+        </div>
+
+        <label style="margin-top:12px">Keys</label>
+        <div class="personnel-grid">
+          <label class="person-check"><input type="checkbox" value="Roberts" onchange="updatePersonnel()"/> Dan Roberts</label>
+          <label class="person-check"><input type="checkbox" value="Romero" onchange="updatePersonnel()"/> Frenchy Romero</label>
+        </div>
+
+        <label style="margin-top:12px">Drums</label>
+        <div class="personnel-grid">
+          <label class="person-check"><input type="checkbox" value="Chin" onchange="updatePersonnel()"/> Grace Chin</label>
+          <label class="person-check"><input type="checkbox" value="Pers" onchange="updatePersonnel()"/> Eric Pers</label>
+        </div>
+
+        <label style="margin-top:12px">Horns</label>
+        <div class="tag-grid" id="horns-config">
+          <button class="tag active" onclick="setBandConfig('horns','full',this); renderLibrary()">Full Horns</button>
+          <button class="tag" onclick="setBandConfig('horns','none',this); renderLibrary()">No Horns</button>
+        </div>
+
+        <div id="personnel-summary" class="personnel-summary"></div>
+        <button class="wizard-next" onclick="openStep(3)">Next → Gig Type</button>
       </div>
-      <label>Energy Level</label>
-      <div class="tag-grid" id="energy-tags">
-        <button class="tag" onclick="toggleTag(this);renderLibrary()">High Energy</button>
-        <button class="tag" onclick="toggleTag(this);renderLibrary()">Mix of Both</button>
-        <button class="tag" onclick="toggleTag(this);renderLibrary()">Dinner / Chill</button>
-      </div>
-      <label>Additional Context</label>
-      <textarea id="gig-notes" oninput="renderLibrary()" placeholder="e.g. Medal ceremony at 9pm, crowd will be seated for first set, general wants country songs…"></textarea>
     </div>
 
-    <div class="section">
-      <div class="section-title">Band Configuration</div>
-      <label>Horns</label>
-      <div class="tag-grid" id="horns-config">
-        <button class="tag active" onclick="setBandConfig('horns','full',this); renderLibrary()">Full Horns</button>
-        <button class="tag" onclick="setBandConfig('horns','none',this); renderLibrary()">No Horns</button>
+    <!-- STEP 3: GIG TYPE & AUDIENCE -->
+    <div class="wizard-step locked" id="step-3">
+      <div class="step-header" onclick="toggleStep(3)">
+        <span class="step-num">3</span>
+        <span class="step-title">Gig Type & Audience</span>
+        <span class="step-check" id="check-3"></span>
       </div>
-      <label>Guitars</label>
-      <div class="tag-grid" id="guitar-config">
-        <button class="tag active" onclick="setBandConfig('guitars','full',this)">2 Guitars</button>
-        <button class="tag" onclick="setBandConfig('guitars','cut',this)">1 Guitar (Cut)</button>
-      </div>
-      <label>Keyboards</label>
-      <div class="tag-grid" id="keys-config">
-        <button class="tag active" onclick="setBandConfig('keys','full',this)">2 Keys</button>
-        <button class="tag" onclick="setBandConfig('keys','cut',this)">1 Key (Cut)</button>
-      </div>
-      <div id="cutdown-note" style="display:none;margin-top:10px;padding:7px 9px;background:rgba(240,192,64,0.1);border:1px solid rgba(240,192,64,0.4);border-radius:4px;font-size:11px;color:var(--accent);line-height:1.5">
-        ⚠ Cut-down mode — songs that historically need full band are flagged in the library
+      <div class="step-body" id="body-3" style="display:none">
+        <label>Event Type</label>
+        <div class="tag-grid" id="event-type-tags">
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Military Ball</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Ceremony</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Corporate</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Wedding</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Private Party</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Concert</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Outdoor Festival</button>
+        </div>
+
+        <label>Political / Cultural Climate</label>
+        <div class="tag-grid" id="climate-tags">
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Conservative</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Liberal</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Mixed</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Patriotic</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Diverse</button>
+        </div>
+
+        <label>Age Range</label>
+        <div class="tag-grid" id="age-tags">
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">All Ages</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Young Adults</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">30s–50s</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Older Crowd</button>
+        </div>
+
+        <label>Energy Level</label>
+        <div class="tag-grid" id="energy-tags">
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">High Energy</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Mix of Both</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Dinner / Chill</button>
+        </div>
+
+        <label>Additional Context</label>
+        <textarea id="gig-notes" placeholder="e.g. Medal ceremony at 9pm, crowd seated for first set, general wants country…" oninput="renderLibrary()"></textarea>
+
+        <button class="wizard-next" onclick="openStep(4)">Next → Set Structure</button>
       </div>
     </div>
 
-    <div class="section">
-      <div class="section-title">Set Structure</div>
-      <div id="sets-list"></div>
-      <button class="add-set-btn" onclick="addSet()">+ Add Set</button>
-    </div>
-
-    <div class="ai-generate-area">
-      <button class="btn btn-ai" onclick="generateFlow()">✦ Suggest Setlist / Generate Show Flow</button>
-      <div class="ai-spinner" id="ai-spinner">✦ Claude is thinking…</div>
+    <!-- STEP 4: SET STRUCTURE -->
+    <div class="wizard-step locked" id="step-4">
+      <div class="step-header" onclick="toggleStep(4)">
+        <span class="step-num">4</span>
+        <span class="step-title">Set Structure</span>
+        <span class="step-check" id="check-4"></span>
+      </div>
+      <div class="step-body" id="body-4" style="display:none">
+        <div id="sets-list"></div>
+        <button class="add-set-btn" onclick="addSet()">+ Add Set</button>
+        <button class="wizard-next" style="margin-top:10px" onclick="buildSetlist()">✦ Build Setlist</button>
+      </div>
     </div>
 
   </div>
@@ -1043,6 +1155,176 @@ No markdown fences.`;
 }
 
 function esc(str){ return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── WIZARD ──
+let currentStep = 1;
+let availableSingers = [];
+
+function openStep(n) {
+  // Mark current step complete
+  document.getElementById(`step-${currentStep}`).classList.add('complete');
+  document.getElementById(`check-${currentStep}`).textContent = '✓';
+  // Unlock and open next step
+  const next = document.getElementById(`step-${n}`);
+  next.classList.remove('locked');
+  document.getElementById(`body-${currentStep}`).style.display = 'none';
+  document.getElementById(`body-${n}`).style.display = 'flex';
+  document.getElementById(`body-${n}`).style.flexDirection = 'column';
+  currentStep = n;
+  next.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function toggleStep(n) {
+  const step = document.getElementById(`step-${n}`);
+  if (step.classList.contains('locked')) return;
+  const body = document.getElementById(`body-${n}`);
+  body.style.display = body.style.display === 'none' ? 'flex' : 'none';
+  if (body.style.display === 'flex') body.style.flexDirection = 'column';
+}
+
+function updateStep1() {
+  const name = document.getElementById('gig-name').value;
+  const date = document.getElementById('gig-date').value;
+  if (name && date) {
+    document.getElementById('check-1').textContent = '✓';
+    document.getElementById('step-1').classList.add('complete');
+  }
+}
+
+function updatePersonnel() {
+  const singerBoxes = document.querySelectorAll('#body-2 input[type=checkbox]');
+  availableSingers = [];
+  let guitars = 0, keys = 0, drums = 0;
+
+  singerBoxes.forEach(cb => {
+    // Style checked state
+    const label = cb.closest('.person-check');
+    if (cb.checked) label.classList.add('checked');
+    else label.classList.remove('checked');
+
+    const val = cb.value;
+    if (['Maya R','Rettig','Tue','Patterson','Melinda R'].includes(val) && cb.checked) availableSingers.push(val);
+    if (['Waltemire','Leader'].includes(val) && cb.checked) guitars++;
+    if (['Roberts','Romero'].includes(val) && cb.checked) keys++;
+    if (['Chin','Pers'].includes(val) && cb.checked) drums++;
+  });
+
+  // Auto-set band config based on personnel
+  bandConfig.guitars = guitars === 1 ? 'cut' : 'full';
+  bandConfig.keys = keys === 1 ? 'cut' : 'full';
+
+  // Build summary
+  const summary = document.getElementById('personnel-summary');
+  let html = `<strong style="color:var(--text)">${availableSingers.length} singers</strong> · `;
+  html += `${guitars} guitar${guitars!==1?'s':''} · ${keys} keyboard${keys!==1?'s':''} · ${drums} drum${drums!==1?'s':''}`;
+  
+  const cutParts = [];
+  if (guitars === 1) cutParts.push('1 guitar');
+  if (keys === 1) cutParts.push('1 keyboard');
+  if (cutParts.length) html += `<br><span class="cut-warning">⚠ Cut-down: ${cutParts.join(', ')} — library will filter accordingly</span>`;
+
+  // Update singer filter dropdown to only show available singers
+  const singerSel = document.getElementById('filter-singer');
+  singerSel.innerHTML = '<option value="">All Singers</option>' +
+    (availableSingers.length
+      ? availableSingers.map(s=>`<option value="${s}">${s}</option>`).join('')
+      : ['Maya R','Rettig','Tue','Patterson','Melinda R'].map(s=>`<option value="${s}">${s}</option>`).join(''));
+
+  summary.innerHTML = html;
+  renderLibrary();
+}
+
+function buildSetlist() {
+  // Auto-generate setlist from scoring
+  if (!allSongs.length) { alert('Load your song sheet first!'); return; }
+
+  const totalMins = sets.reduce((s,set) => s + set.minutes, 0);
+  const approxSongs = Math.max(8, Math.round(totalMins / 3.5));
+
+  // Score all songs
+  const scored = allSongs
+    .filter(s => {
+      // Filter horns
+      if (bandConfig.horns === 'none' && (s['Horns']||'').trim()) return false;
+      // Filter cut-down
+      if (bandConfig.guitars === 'cut' || bandConfig.keys === 'cut') {
+        const kb = findKB(s['Song']);
+        if (kb && kb.full_guitar_count >= 2 && kb.cut_guitar_count === 0) return false;
+      }
+      // Filter by available singers
+      if (availableSingers.length) {
+        const canSing = availableSingers.some(singer => {
+          const v = (s[singer]||'').trim().toUpperCase();
+          return v === 'X' || v === 'X?';
+        });
+        if (!canSing) return false;
+      }
+      return true;
+    })
+    .map(s => ({ song: s, score: getGigScore(s) }))
+    .sort((a, b) => b.score - a.score);
+
+  // Pick songs, balancing singers and genres
+  const picked = [];
+  const singerCount = {};
+  const genreCount = {};
+  const maxPerSinger = Math.ceil(approxSongs / Math.max(availableSingers.length, 1));
+
+  for (const { song: s } of scored) {
+    if (picked.length >= approxSongs) break;
+
+    // Find best available singer for this song
+    const possibleSingers = (availableSingers.length ? availableSingers : ['Maya R','Rettig','Tue','Patterson','Melinda R'])
+      .filter(singer => {
+        const v = (s[singer]||'').trim().toUpperCase();
+        return v === 'X' || v === 'X?';
+      })
+      .sort((a, b) => (singerCount[a]||0) - (singerCount[b]||0)); // pick least-used singer
+
+    if (!possibleSingers.length) continue;
+
+    const singer = possibleSingers[0];
+    if ((singerCount[singer]||0) >= maxPerSinger && availableSingers.length > 1) continue;
+
+    // Limit genre repetition
+    const genre = (s['Genre']||'').split(',')[0].trim();
+    if ((genreCount[genre]||0) >= Math.ceil(approxSongs * 0.35)) continue;
+
+    singerCount[singer] = (singerCount[singer]||0) + 1;
+    genreCount[genre] = (genreCount[genre]||0) + 1;
+    picked.push({ song: s, singer });
+  }
+
+  // Distribute across sets
+  runsheet = [];
+  const songsPerSet = sets.map(set => Math.round(approxSongs * set.minutes / totalMins));
+  let songIdx = 0;
+  sets.forEach((set, si) => {
+    const count = songsPerSet[si];
+    for (let i = 0; i < count && songIdx < picked.length; i++, songIdx++) {
+      runsheet.push({ type:'song', song: picked[songIdx].song, setIndex: si, flowNote:'', aiNote:'' });
+    }
+    if (si < sets.length - 1) {
+      runsheet.push({ type:'break', label:'Break', minutes: 15 });
+    }
+  });
+
+  renderRunsheet();
+  renderLibrary();
+
+  // Auto-name runsheet
+  const gigName = document.getElementById('gig-name').value;
+  if (gigName) document.getElementById('runsheet-name').value = gigName.toUpperCase();
+
+  // Open step 4 complete
+  document.getElementById('step-4').classList.add('complete');
+  document.getElementById('check-4').textContent = '✓';
+
+  // Scroll to runsheet
+  document.getElementById('runsheet-body').scrollIntoView({behavior:'smooth'});
+  setStatus(`✦ ${picked.length} songs suggested`);
+}
+
 </script>
 </body>
 </html>
