@@ -983,6 +983,13 @@ No markdown fences.`;
       })
     });
     const data = await res.json();
+    console.log('API response:', JSON.stringify(data).substring(0, 500));
+    if (data.error) {
+      throw new Error('API error: ' + data.error.type + ' — ' + data.error.message);
+    }
+    if (!data.content || !data.content.length) {
+      throw new Error('Empty response from API. Full response: ' + JSON.stringify(data).substring(0,300));
+    }
     const text = data.content.map(c=>c.text||'').join('');
     const clean = text.replace(/```json|```/g,'').trim();
 
@@ -1027,8 +1034,8 @@ No markdown fences.`;
     }
   } catch(e) {
     const errMsg = e && e.message ? e.message : String(e);
-    alert('AI generation failed: ' + errMsg + '\n\nCheck browser console for details.');
-    console.error('AI error:', e);
+    alert('AI generation failed:\n\n' + errMsg);
+    console.error('AI error full:', e);
     document.getElementById('ai-spinner').style.display='none';
   } finally {
     document.querySelector('.btn-ai').disabled=false;
