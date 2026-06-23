@@ -15,12 +15,12 @@
     body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;min-height:100vh;}
 
     /* HEADER */
-    header{border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
-    header h1{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:var(--accent);white-space:nowrap;}
+    header{border-bottom:1px solid var(--border);padding:8px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+    header h1{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--accent);white-space:nowrap;}
     .hdr-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
     #sheet-url{background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 8px;outline:none;width:280px;}
     #sheet-url:focus{border-color:var(--accent);}
-    #status{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+    #status{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;white-space:normal;max-width:200px;}
 
     /* BUTTONS */
     .btn{border:none;border-radius:4px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.1s;}
@@ -32,13 +32,23 @@
     .btn-ai{background:var(--ai);color:white;border:none;border-radius:4px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;}
     .btn-ai:hover{background:#9585f8;}
 
-    /* THREE-COLUMN LAYOUT */
-    .app{display:grid;grid-template-columns:300px 1fr 360px;height:calc(100vh - 49px);}
+    /* LAYOUT - mobile tabs */
+    .app{display:flex;flex-direction:column;height:calc(100vh - 49px);}
+
+    /* TAB BAR */
+    .tab-bar{display:flex;border-bottom:2px solid var(--border);background:var(--surface);flex-shrink:0;}
+    .tab-btn{flex:1;padding:10px 4px;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--muted);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;}
+    .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+    /* PANELS */
+    .tab-panel{display:none;flex:1;overflow-y:auto;}
+    .tab-panel.active{display:flex;flex-direction:column;}
+    .tab-panel::-webkit-scrollbar{width:4px;}
+    .tab-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
     /* ── LEFT: WIZARD ── */
-    .gig-panel{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
-    .gig-panel::-webkit-scrollbar{width:4px;}
-    .gig-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+    .gig-panel{display:flex;flex-direction:column;}
+
 
     .wizard-step{border-bottom:1px solid var(--border);}
     .wizard-step.locked{opacity:0.45;pointer-events:none;}
@@ -52,13 +62,13 @@
     .step-body{padding:4px 14px 12px;display:flex;flex-direction:column;gap:0;}
 
     label.field-label{display:block;font-size:10px;color:var(--muted);margin-bottom:3px;margin-top:9px;text-transform:uppercase;letter-spacing:0.5px;}
-    .step-body input[type=text],.step-body textarea,.step-body select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;padding:6px 8px;outline:none;font-family:'Inter',sans-serif;}
+    .step-body input[type=text],.step-body textarea,.step-body select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:16px;padding:8px 10px;outline:none;font-family:'Inter',sans-serif;}
     .step-body input:focus,.step-body textarea:focus{border-color:var(--accent);}
     .step-body textarea{resize:vertical;min-height:55px;line-height:1.5;}
 
     /* PERSONNEL */
     .person-grid{display:flex;flex-direction:column;gap:4px;margin-top:4px;}
-    .person-check{display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer;padding:5px 8px;border-radius:4px;border:1px solid var(--border);transition:all 0.1s;}
+    .person-check{display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer;padding:10px 12px;border-radius:4px;border:1px solid var(--border);transition:all 0.1s;}
     .person-check:hover{border-color:var(--accent);background:var(--accent-dim);}
     .person-check.on{border-color:var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:500;}
     .person-check input{accent-color:var(--accent);width:13px;height:13px;cursor:pointer;}
@@ -67,7 +77,7 @@
 
     /* TAGS */
     .tag-grid{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
-    .tag{padding:3px 9px;border-radius:3px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:none;transition:all 0.15s;}
+    .tag{padding:7px 12px;border-radius:3px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:none;transition:all 0.15s;}
     .tag:hover{border-color:var(--accent);color:var(--accent);}
     .tag.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
 
@@ -86,39 +96,39 @@
     .build-btn:hover{background:#9585f8;}
 
     /* ── MIDDLE: LIBRARY ── */
-    .library{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+    .library{display:flex;flex-direction:column;flex:1;overflow:hidden;}
     .lib-header{padding:9px 12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px;}
     .lib-title{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1.2px;color:var(--muted);}
     .filters{display:flex;gap:4px;flex-wrap:wrap;}
     .filters input,.filters select{background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;padding:4px 7px;outline:none;font-family:'Inter',sans-serif;flex:1;min-width:80px;}
     .filters input:focus,.filters select:focus{border-color:var(--accent);}
 
-    .col-headers{display:grid;grid-template-columns:1fr 50px 60px 75px 55px 45px 22px;padding:4px 11px;gap:5px;background:var(--surface);border-bottom:1px solid var(--border);}
+    .col-headers{display:grid;grid-template-columns:1fr 45px 55px 35px;padding:4px 11px;gap:5px;background:var(--surface);border-bottom:1px solid var(--border);}
     .col-headers span{font-size:9px;font-weight:600;letter-spacing:0.7px;text-transform:uppercase;color:var(--muted);}
 
     .song-list{flex:1;overflow-y:auto;}
     .song-list::-webkit-scrollbar{width:4px;}
     .song-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
-    .song-row{display:grid;grid-template-columns:1fr 50px 60px 75px 55px 45px 22px;align-items:center;padding:6px 11px;border-bottom:1px solid var(--border);gap:5px;transition:background 0.1s;}
+    .song-row{display:grid;grid-template-columns:1fr 45px 55px 35px;align-items:center;padding:8px 11px;border-bottom:1px solid var(--border);gap:5px;transition:background 0.1s;}
     .song-row:hover{background:var(--surface);}
     .song-row .title{font-weight:500;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .song-row .meta{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .genre-badge{display:inline-block;font-size:9px;font-weight:600;padding:1px 4px;border-radius:2px;background:var(--accent-dim);color:var(--accent);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
     .hist-badge{font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace;padding:2px 4px;border-radius:2px;background:rgba(76,175,130,0.15);color:var(--green);white-space:nowrap;}
     .hist-badge.new{background:rgba(124,106,247,0.15);color:var(--ai);}
-    .add-btn{background:none;border:1px solid var(--border);border-radius:3px;color:var(--muted);cursor:pointer;width:20px;height:20px;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.1s;flex-shrink:0;}
+    .add-btn{background:none;border:1px solid var(--border);border-radius:3px;color:var(--muted);cursor:pointer;width:32px;height:32px;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all 0.1s;flex-shrink:0;}
     .add-btn:hover{background:var(--accent);color:#0e0e10;border-color:var(--accent);}
     .empty-msg{padding:24px 14px;text-align:center;color:var(--muted);font-size:12px;}
 
     /* ── RIGHT: RUNSHEET ── */
-    .runsheet-panel{display:flex;flex-direction:column;overflow:hidden;}
+    .runsheet-panel{display:flex;flex-direction:column;flex:1;overflow:hidden;}
     .rs-header{padding:9px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;}
     .rs-title-wrap{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0;}
     #runsheet-name{background:none;border:none;color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;outline:none;width:100%;}
     #runsheet-name::placeholder{color:var(--muted);}
     .rs-meta{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
-    .rs-actions{display:flex;gap:4px;flex-shrink:0;}
+    .rs-actions{display:flex;gap:4px;flex-shrink:0;flex-wrap:wrap;}
 
     /* SHOW FLOW BAR */
     .showflow-bar{display:none;padding:7px 13px;border-bottom:1px solid var(--border);gap:5px;display:none;flex-direction:row;}
@@ -158,7 +168,7 @@
 
     /* SINGER ASSIGN */
     .singer-assign{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px;}
-    .singer-btn{font-size:9px;padding:2px 6px;border-radius:2px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;transition:all 0.1s;}
+    .singer-btn{font-size:11px;padding:5px 9px;border-radius:3px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;transition:all 0.1s;}
     .singer-btn:hover{border-color:var(--accent);color:var(--accent);}
     .singer-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);font-weight:600;}
     .primary-tag{font-size:9px;padding:1px 5px;border-radius:2px;background:rgba(76,175,130,0.15);color:var(--green);font-weight:700;margin-left:3px;}
@@ -241,7 +251,15 @@
 
 <div class="app">
 
-  <!-- ── LEFT: WIZARD ── -->
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="showTab('gig')">⚙ Gig</button>
+    <button class="tab-btn" onclick="showTab('library')">🎵 Songs</button>
+    <button class="tab-btn" onclick="showTab('runsheet')">📋 Setlist</button>
+  </div>
+
+  <!-- TAB: GIG SETUP -->
+  <div class="tab-panel active" id="tab-gig">
   <div class="gig-panel">
 
     <!-- STEP 1 -->
@@ -365,11 +383,13 @@
     </div>
 
   </div>
+  </div><!-- /tab-gig -->
 
-  <!-- ── MIDDLE: LIBRARY ── -->
+  <!-- TAB: LIBRARY -->
+  <div class="tab-panel" id="tab-library">
   <div class="library">
     <div class="lib-header">
-      <span class="lib-title">Song Library — <span id="song-total">—</span></span>
+      <div style="display:flex;align-items:center;justify-content:space-between"><span class="lib-title">Song Library — <span id="song-total">—</span></span><button class="btn btn-outline" style="font-size:10px;padding:3px 8px" onclick="showTab('runsheet')">View Setlist →</button></div>
       <div class="filters">
         <input id="search" type="text" placeholder="Search…" oninput="renderLibrary()"/>
         <select id="filter-singer" onchange="renderLibrary()">
@@ -396,14 +416,16 @@
       </div>
     </div>
     <div class="col-headers">
-      <span>Title</span><span>Cat#</span><span>Key</span><span>Artist</span><span>Genre</span><span>Hist</span><span></span>
+      <span>Title</span><span>Key</span><span>Genre</span><span></span>
     </div>
     <div class="song-list" id="song-list">
       <div class="empty-msg">Load your CSV to get started.</div>
     </div>
   </div>
+  </div><!-- /tab-library -->
 
-  <!-- ── RIGHT: RUNSHEET ── -->
+  <!-- TAB: RUNSHEET -->
+  <div class="tab-panel" id="tab-runsheet">
   <div class="runsheet-panel">
     <div class="rs-header">
       <div class="rs-title-wrap">
@@ -434,6 +456,7 @@
       <div class="empty-rs"><div class="icon">🎵</div><p>Complete the wizard to build your setlist</p></div>
     </div>
   </div>
+  </div><!-- /tab-runsheet -->
 
 </div>
 
@@ -472,6 +495,16 @@ window.addEventListener('load', () => { renderSets(); });
 
 // ── UTILS ──
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if(b.textContent.toLowerCase().includes(name==='gig'?'gig':name==='library'?'song':'setlist'))
+      b.classList.add('active');
+  });
+}
 function toggleTag(btn){ btn.classList.toggle('active'); }
 function toggleExcl(btn, grp){
   btn.closest('.tag-grid').querySelectorAll('.tag').forEach(t=>t.classList.remove('active'));
@@ -485,6 +518,7 @@ function setStatus(msg,err=false){
 // ── WIZARD ──
 let currentStep = 1;
 function openStep(n){
+  if(n===2) showTab('library'); // show songs while filling details
   document.getElementById(`step-${currentStep}`).classList.add('complete');
   document.getElementById(`chk-${currentStep}`).textContent='✓';
   document.getElementById(`body-${currentStep}`).style.display='none';
@@ -796,13 +830,14 @@ function renderLibrary(){
     }
 
     const enc=encodeURIComponent(JSON.stringify(s));
+    const primarySinger = kb&&kb.primary_singer ? kb.primary_singer.split(' ')[0] : '';
     return `<div class="song-row"${rowWarn}>
-      <span class="title" title="${esc(s['Song'])}">${esc(s['Song'])}${hasHorns?'<span class="horn-star">*</span>':''}</span>
-      <span class="meta">${esc(s['Catalog #'])||'—'}</span>
+      <div>
+        <div class="title" title="${esc(s['Song'])}">${esc(s['Song'])}${hasHorns?'<span class="horn-star">*</span>':''}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:1px">${esc(s['Artist'])||''} ${primarySinger?'· <span style=color:var(--green)>'+primarySinger+'★</span>':''}</div>
+      </div>
       <span class="meta">${esc(s['Key'])||'—'}</span>
-      <span class="meta" title="${esc(s['Artist'])}">${esc(s['Artist'])||'—'}</span>
       <span class="genre-badge" title="${esc(s['Genre'])}">${esc((s['Genre']||'').split(',')[0].trim())||'—'}</span>
-      ${histBadge}
       <button class="add-btn${inSet?' added':''}" onclick="addSong('${enc}')" title="Add">+</button>
     </div>`;
   }).join('');
@@ -943,6 +978,7 @@ function buildSetlist(){
   document.getElementById('step-4').classList.add('complete');
   document.getElementById('chk-4').textContent='✓';
   setStatus(`✦ ${runsheet.filter(r=>r.type==='song').length} songs arranged`);
+  showTab('runsheet');
 }
 
 // ── KEY LOCK ──
