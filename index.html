@@ -214,6 +214,7 @@
       .encore-opt.selected{color:black;font-weight:bold;}
     }
   </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -226,14 +227,17 @@
 <header>
   <h1>DR Setlist Creator</h1>
   <div class="hdr-right">
-    <input id="sheet-url" type="text" placeholder="Google Sheet CSV URL…"
-      value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ94KIxEH-9Gssi6ZRaNqBJp91G4hsgyMVhpST68IhN27Daly4UR31xGLYcWOYSL_Ba3wCXeOYvRDor/pub?output=csv"/>
-    <button class="btn btn-outline" onclick="loadSheet()">Load URL</button>
-    <label class="btn btn-green" style="cursor:pointer;margin:0">
-      📂 CSV
-      <input type="file" accept=".csv" onchange="loadCSVFile(this)" style="display:none"/>
+    <label class="btn btn-accent" style="cursor:pointer;margin:0;font-size:13px">
+      📂 Load Songs (CSV or Excel)
+      <input type="file" accept=".csv,.xlsx,.xls" onchange="loadCSVFile(this)" style="display:none"/>
     </label>
-    <span id="status">Ready</span>
+    <button class="btn btn-outline" id="url-toggle" onclick="document.getElementById('url-row').style.display=document.getElementById('url-row').style.display==='none'?'flex':'none'">URL ▾</button>
+    <span id="status">Download your Google Sheet as CSV or XLSX, then click Load</span>
+  </div>
+  <div id="url-row" style="display:none;align-items:center;gap:6px;padding:6px 20px;background:var(--surface);border-bottom:1px solid var(--border)">
+    <input id="sheet-url" type="text" placeholder="Google Sheet published CSV URL…" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 8px;outline:none"
+      value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ94KIxEH-9Gssi6ZRaNqBJp91G4hsgyMVhpST68IhN27Daly4UR31xGLYcWOYSL_Ba3wCXeOYvRDor/pub?output=csv"/>
+    <button class="btn btn-outline" onclick="loadSheet()">Try URL</button>
   </div>
 </header>
 
@@ -466,7 +470,7 @@ let bandConfig = {horns:'full', guitars:'full', keys:'full'};
 let dragIndex = null;
 let _encoreCandidates = [];
 
-window.addEventListener('load', () => { renderSets(); loadSheet(); });
+window.addEventListener('load', () => { renderSets(); });
 
 // ── UTILS ──
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -589,14 +593,36 @@ async function loadSheet(){
 
 function loadCSVFile(input){
   const file=input.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    allSongs=parseCSV(e.target.result);
-    populateGenres(); renderLibrary();
-    document.getElementById('song-total').textContent=allSongs.length+' songs';
-    setStatus(`✓ ${allSongs.length} songs (file)`);
-  };
-  reader.readAsText(file);
+  const isXLSX = /\.xlsx?$/i.test(file.name);
+  setStatus('Reading file…');
+
+  if(isXLSX){
+    const reader=new FileReader();
+    reader.onload=e=>{
+      try {
+        const wb = XLSX.read(e.target.result, {type:'array'});
+        // Use first sheet
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const csv = XLSX.utils.sheet_to_csv(ws);
+        allSongs = parseCSV(csv);
+        populateGenres(); renderLibrary();
+        document.getElementById('song-total').textContent=allSongs.length+' songs';
+        setStatus(`✓ ${allSongs.length} songs from Excel`);
+      } catch(err) {
+        setStatus('Failed to read Excel file: '+err.message, true);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    const reader=new FileReader();
+    reader.onload=e=>{
+      allSongs=parseCSV(e.target.result);
+      populateGenres(); renderLibrary();
+      document.getElementById('song-total').textContent=allSongs.length+' songs';
+      setStatus(`✓ ${allSongs.length} songs from CSV`);
+    };
+    reader.readAsText(file);
+  }
 }
 
 function parseCSV(csv){
