@@ -231,9 +231,72 @@
     .ai-generate-area .btn-ai { width: 100%; padding: 9px; font-size: 13px; }
     .ai-spinner { display: none; text-align: center; color: var(--ai); font-size: 12px; margin-top: 8px; font-style: italic; }
 
+  
+    /* ENCORE */
+    .encore-bar { border-bottom: 1px solid var(--border); background: var(--surface); padding: 8px 14px; }
+    .encore-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .encore-label { font-family: "Bebas Neue", sans-serif; font-size: 13px; letter-spacing: 1.5px; color: var(--accent); flex: 1; }
+    .encore-slot { font-size: 12px; color: var(--muted); padding: 4px 0; }
+    .encore-option { display: inline-flex; align-items: center; gap: 6px; margin: 3px 4px 3px 0; padding: 5px 10px; border-radius: 4px; border: 1px solid var(--border); font-size: 12px; cursor: pointer; transition: all 0.1s; background: none; color: var(--text); }
+    .encore-option:hover { border-color: var(--accent); background: var(--accent-dim); }
+    .encore-option.selected { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+    .encore-option .enc-singer { font-size: 10px; color: var(--muted); }
+    .encore-option.selected .enc-singer { color: var(--accent); }
+
+    /* COMBO SINGER */
+    .singer-assign { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
+    .singer-btn { font-size: 10px; padding: 2px 7px; border-radius: 3px; border: 1px solid var(--border); background: none; color: var(--muted); cursor: pointer; transition: all 0.1s; }
+    .singer-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .singer-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+    /* HORN INDICATOR */
+    .horn-star { color: var(--accent); font-size: 11px; margin-left: 2px; }
+
+    /* PRINT STYLES - match DR doc format */
+    @media print {
+      header, #sheet-bar, .library, .gig-panel, .runsheet-actions,
+      .run-remove, .encore-bar .btn-sm, #showflow-bar,
+      .singer-assign, .flow-note { display: none !important; }
+
+      body { background: white; color: black; font-family: Arial, sans-serif; font-size: 11pt; }
+      .app { display: block; height: auto; }
+      .runsheet-panel { display: block; overflow: visible; }
+      .encore-bar { display: block !important; background: white; border: none; padding: 0; margin-top: 12px; }
+      .encore-label { font-size: 13pt; font-weight: bold; }
+      .encore-slot { color: black; }
+      .encore-option.selected { border: none; background: none; color: black; font-weight: bold; padding: 0; }
+      .encore-option:not(.selected) { display: none; }
+
+      #print-header { display: block !important; }
+      .runsheet-header { display: none; }
+      #runsheet-body { overflow: visible; padding: 0; }
+
+      .set-block-header { background: none; border: none; border-bottom: 1px solid #999; padding: 8px 0 4px; margin-top: 14px; }
+      .set-block-title { font-size: 13pt; font-weight: bold; color: black; }
+      .set-block-meta { display: none; }
+
+      .run-item { border: none; page-break-inside: avoid; }
+      .run-song { padding: 3px 0; cursor: default; border: none; background: none !important; }
+      .run-num { color: black; font-family: Arial; }
+      .run-title { font-weight: bold; font-size: 11pt; }
+      .run-detail-print { display: block !important; font-size: 10pt; color: #333; }
+      .break-block { background: none; border-top: 1px dashed #999; border-bottom: none; padding: 6px 0; }
+      .break-label { font-weight: bold; color: #555; }
+    }
+
+    /* Print header (hidden on screen) */
+    #print-header { display: none; }
+
   </style>
 </head>
 <body>
+
+<!-- PRINT HEADER (hidden on screen, shown on print) -->
+<div id="print-header">
+  <div id="ph-title" style="font-size:16pt;font-weight:bold;margin-bottom:6px"></div>
+  <div id="ph-meta" style="font-size:10pt;margin-bottom:12px;color:#444"></div>
+  <div id="ph-personnel" style="font-size:10pt;margin-bottom:16px;line-height:1.8;border-bottom:2px solid black;padding-bottom:10px"></div>
+</div>
 
 <header>
   <h1>DR Setlist Creator</h1>
@@ -268,6 +331,8 @@
         <input type="text" id="gig-date" placeholder="e.g. Nov 8, 2025" oninput="updateStep1()"/>
         <label>Location / Venue</label>
         <input type="text" id="gig-location" placeholder="e.g. Fort Myer, Arlington VA" oninput="updateStep1(); renderLibrary()"/>
+        <label>Producer</label>
+        <input type="text" id="gig-producer" placeholder="e.g. Pride" oninput="updateStep1()"/>
         <button class="wizard-next" onclick="openStep(2)">Next → Personnel</button>
       </div>
     </div>
@@ -430,9 +495,23 @@
         <span class="runsheet-meta" id="runsheet-meta">0 songs</span>
       </div>
       <div class="runsheet-actions">
+        <button id="save-btn" class="btn btn-outline" onclick="saveGig()">Save</button>
+        <button class="btn btn-outline" onclick="loadGig()">Load</button>
         <button class="btn btn-outline" onclick="clearRunsheet()">Clear</button>
-        <button class="btn btn-accent" onclick="window.print()">Print</button>
+        <button class="btn btn-accent" onclick="updatePrintHeader(); window.print()">Print</button>
       </div>
+    </div>
+    <div class="encore-bar" id="encore-bar" style="display:none">
+      <div class="encore-header">
+        <span class="encore-label">ENCORE</span>
+        <button class="btn-sm" onclick="suggestEncores()">✦ Suggest</button>
+        <button class="btn-sm" onclick="clearEncore()">Clear</button>
+      </div>
+      <div id="encore-slot" class="encore-slot">No encore selected — click Suggest</div>
+    </div>
+    <div id="showflow-bar" style="display:none;padding:8px 14px;border-bottom:1px solid var(--border)">
+      <button class="btn btn-ai" style="width:100%;padding:7px;font-size:12px" onclick="generateShowFlow()">✦ Generate Show Flow Notes</button>
+      <div class="ai-spinner" id="ai-spinner" style="display:none;text-align:center;color:var(--ai);font-size:11px;margin-top:6px;font-style:italic">✦ Writing show flow…</div>
     </div>
     <div class="runsheet-body" id="runsheet-body">
       <div class="empty-runsheet">
@@ -802,14 +881,7 @@ function removeSet(i) {
 function toggleTag(btn){ btn.classList.toggle('active'); }
 
 // ── ADD SONG TO RUNSHEET ──
-function addSong(enc) {
-  const song = JSON.parse(decodeURIComponent(enc));
-  // Figure out which set to put it in based on current counts
-  const setIndex = getCurrentSetIndex();
-  runsheet.push({type:'song', song, setIndex, flowNote:'', aiNote:''});
-  renderRunsheet();
-  renderLibrary();
-}
+
 
 function getCurrentSetIndex() {
   if(!runsheet.length) return 0;
@@ -1234,24 +1306,34 @@ function updatePersonnel() {
   renderLibrary();
 }
 
+// ── ENERGY SCORING ──
+function getEnergyLevel(s) {
+  const genre = (s['Genre']||'').toLowerCase();
+  const kb = findKB(s['Song']);
+  const plays = kb ? kb.play_count : 0;
+  // High energy genres
+  if (/hard rock|metal|punk|funk|dance|hip.?hop|rap|upbeat/.test(genre)) return 3;
+  if (/rock|pop|r&b|country|motown|soul/.test(genre)) return 2;
+  if (/ballad|jazz|acoustic|classical|slow/.test(genre)) return 1;
+  // Default mid
+  return 2;
+}
+
+// ── IMPROVED BUILD SETLIST with energy arc ──
 function buildSetlist() {
-  // Auto-generate setlist from scoring
   if (!allSongs.length) { alert('Load your song sheet first!'); return; }
 
   const totalMins = sets.reduce((s,set) => s + set.minutes, 0);
   const approxSongs = Math.max(8, Math.round(totalMins / 3.5));
 
-  // Score all songs
+  // Score and filter
   const scored = allSongs
     .filter(s => {
-      // Filter horns
       if (bandConfig.horns === 'none' && (s['Horns']||'').trim()) return false;
-      // Filter cut-down
       if (bandConfig.guitars === 'cut' || bandConfig.keys === 'cut') {
         const kb = findKB(s['Song']);
         if (kb && kb.full_guitar_count >= 2 && kb.cut_guitar_count === 0) return false;
       }
-      // Filter by available singers
       if (availableSingers.length) {
         const canSing = availableSingers.some(singer => {
           const v = (s[singer]||'').trim().toUpperCase();
@@ -1261,69 +1343,349 @@ function buildSetlist() {
       }
       return true;
     })
-    .map(s => ({ song: s, score: getGigScore(s) }))
+    .map(s => ({ song: s, score: getGigScore(s), energy: getEnergyLevel(s) }))
     .sort((a, b) => b.score - a.score);
 
-  // Pick songs, balancing singers and genres
+  // Pick songs balancing singers and energy arc
   const picked = [];
   const singerCount = {};
-  const genreCount = {};
   const maxPerSinger = Math.ceil(approxSongs / Math.max(availableSingers.length, 1));
+  const usedSongs = new Set();
 
-  for (const { song: s } of scored) {
+  for (const item of scored) {
     if (picked.length >= approxSongs) break;
+    const s = item.song;
+    if (usedSongs.has(s['Song'])) continue;
 
-    // Find best available singer for this song
     const possibleSingers = (availableSingers.length ? availableSingers : ['Maya R','Rettig','Tue','Patterson','Melinda R'])
       .filter(singer => {
         const v = (s[singer]||'').trim().toUpperCase();
         return v === 'X' || v === 'X?';
       })
-      .sort((a, b) => (singerCount[a]||0) - (singerCount[b]||0)); // pick least-used singer
+      .sort((a, b) => (singerCount[a]||0) - (singerCount[b]||0));
 
     if (!possibleSingers.length) continue;
-
     const singer = possibleSingers[0];
     if ((singerCount[singer]||0) >= maxPerSinger && availableSingers.length > 1) continue;
 
-    // Limit genre repetition
-    const genre = (s['Genre']||'').split(',')[0].trim();
-    if ((genreCount[genre]||0) >= Math.ceil(approxSongs * 0.35)) continue;
-
     singerCount[singer] = (singerCount[singer]||0) + 1;
-    genreCount[genre] = (genreCount[genre]||0) + 1;
-    picked.push({ song: s, singer });
+    usedSongs.add(s['Song']);
+    picked.push({ ...item, singer });
   }
 
-  // Distribute across sets
-  runsheet = [];
+  // Apply energy arc per set: HIGH → MID → STRONG CLOSE
+  // Sort each set's songs: opener (high), body (mid), closer (high/big)
   const songsPerSet = sets.map(set => Math.round(approxSongs * set.minutes / totalMins));
   let songIdx = 0;
+  const allPicked = [...picked];
+
+  runsheet = [];
   sets.forEach((set, si) => {
     const count = songsPerSet[si];
-    for (let i = 0; i < count && songIdx < picked.length; i++, songIdx++) {
-      runsheet.push({ type:'song', song: picked[songIdx].song, setIndex: si, flowNote:'', aiNote:'' });
+    const setSlice = allPicked.splice(0, count);
+    if (!setSlice.length) return;
+
+    // Sort by energy arc: high openers, mid body, strong closer
+    const highs = setSlice.filter(x => x.energy === 3);
+    const mids  = setSlice.filter(x => x.energy === 2);
+    const lows  = setSlice.filter(x => x.energy === 1);
+
+    let arranged = [];
+    // Opener: highest energy
+    if (highs.length) arranged.push(highs.shift());
+    else if (mids.length) arranged.push(mids.shift());
+    // Closer: another high or mid
+    const closerPool = [...highs, ...mids];
+    const closer = closerPool.length ? closerPool.pop() : null;
+    // Fill middle with remaining (mix lows and mids)
+    const middle = [...highs, ...mids, ...lows];
+    // Interleave: don't stack all lows together
+    const midArranged = [];
+    let lowCount = 0;
+    for (const s of middle) {
+      if (s.energy === 1 && lowCount >= 2) {
+        midArranged.unshift(s); lowCount = 0; // break up lows
+      } else {
+        midArranged.push(s);
+        if (s.energy === 1) lowCount++; else lowCount = 0;
+      }
     }
+    arranged = [arranged[0], ...midArranged, ...(closer ? [closer] : [])].filter(Boolean);
+
+    arranged.forEach(item => {
+      runsheet.push({ type:'song', song: item.song, setIndex: si,
+                      singer: item.singer, singers: [item.singer],
+                      flowNote:'', aiNote:'' });
+    });
     if (si < sets.length - 1) {
       runsheet.push({ type:'break', label:'Break', minutes: 15 });
     }
   });
 
-  renderRunsheet();
-  renderLibrary();
-
-  // Auto-name runsheet
   const gigName = document.getElementById('gig-name').value;
   if (gigName) document.getElementById('runsheet-name').value = gigName.toUpperCase();
 
-  // Open step 4 complete
+  renderRunsheet();
+  renderLibrary();
+  updatePrintHeader();
+
+  // Show encore bar and show flow button
+  document.getElementById('encore-bar').style.display = 'block';
+  document.getElementById('showflow-bar').style.display = 'block';
+
   document.getElementById('step-4').classList.add('complete');
   document.getElementById('check-4').textContent = '✓';
-
-  // Scroll to runsheet
-  document.getElementById('runsheet-body').scrollIntoView({behavior:'smooth'});
-  setStatus(`✦ ${picked.length} songs suggested`);
+  setStatus(`✦ ${runsheet.filter(r=>r.type==='song').length} songs arranged`);
 }
+
+// ── ENCORE ──
+let encoreSelected = null;
+
+function suggestEncores() {
+  // Build shortlist: high-scoring songs NOT already in runsheet
+  const inRunsheet = new Set(runsheet.filter(r=>r.type==='song').map(r=>r.song['Song']));
+  const activeTags = (id) => [...(document.getElementById(id)||{querySelectorAll:()=>[]}).querySelectorAll('.tag.active')].map(t=>t.textContent.toLowerCase());
+  const eventTypes = activeTags('event-type-tags');
+  const isMilitary = eventTypes.some(e => e.includes('military') || e.includes('ceremony'));
+  const isWedding = eventTypes.some(e => e.includes('wedding'));
+
+  const candidates = allSongs
+    .filter(s => !inRunsheet.has(s['Song']))
+    .filter(s => {
+      if (availableSingers.length) {
+        return availableSingers.some(singer => {
+          const v = (s[singer]||'').trim().toUpperCase();
+          return v === 'X' || v === 'X?';
+        });
+      }
+      return true;
+    })
+    .map(s => {
+      let score = getGigScore(s);
+      const kb = findKB(s['Song']);
+      // Encore bonus: high play count = crowd knows it
+      if (kb && kb.play_count >= 10) score += 20;
+      // Military encore bonus for patriotic
+      if (isMilitary && (s['Patriotic']||'').trim()) score += 30;
+      // Wedding: big ballad or dance floor closer
+      if (isWedding && /(ballad|soul|pop)/i.test(s['Genre']||'')) score += 15;
+      return { song: s, score };
+    })
+    .sort((a,b) => b.score - a.score)
+    .slice(0, 6);
+
+  const slot = document.getElementById('encore-slot');
+  slot.innerHTML = candidates.map((c,i) => {
+    const s = c.song;
+    const hasHorns = !!(s['Horns']||'').trim();
+    const singer = availableSingers.find(singer => (s[singer]||'').toUpperCase().startsWith('X')) || '?';
+    return `<button class="encore-option${encoreSelected===s['Song']?' selected':''}" onclick="selectEncore(${i})" data-idx="${i}">
+      ${s['Song']}${hasHorns?'<span class="horn-star">*</span>':''}
+      <span class="enc-singer">${singer}</span>
+    </button>`;
+  }).join('');
+  slot._candidates = candidates;
+}
+
+function selectEncore(i) {
+  const slot = document.getElementById('encore-slot');
+  const candidates = slot._candidates;
+  if (!candidates) return;
+  const chosen = candidates[i].song;
+  encoreSelected = chosen['Song'];
+  suggestEncores(); // re-render with selection
+  updatePrintHeader();
+}
+
+function clearEncore() {
+  encoreSelected = null;
+  document.getElementById('encore-slot').innerHTML = 'No encore selected — click Suggest';
+}
+
+// ── COMBO SINGERS in runsheet ──
+function toggleSinger(itemIdx, singer) {
+  const item = runsheet[itemIdx];
+  if (!item || item.type !== 'song') return;
+  if (!item.singers) item.singers = [item.singer];
+  if (item.singers.includes(singer)) {
+    item.singers = item.singers.filter(s => s !== singer);
+  } else {
+    item.singers.push(singer);
+  }
+  if (!item.singers.length) item.singers = [singer]; // always keep at least one
+  item.singer = item.singers.join(' / ');
+  renderRunsheet();
+}
+
+// ── DUPLICATE PROTECTION ──
+function addSong(enc) {
+  const song = JSON.parse(decodeURIComponent(enc));
+  const already = runsheet.some(r => r.type === 'song' && r.song['Song'] === song['Song']);
+  if (already) {
+    // Flash the existing song instead
+    const items = document.querySelectorAll('.run-title');
+    items.forEach(el => {
+      if (el.textContent === song['Song']) {
+        el.closest('.run-song').style.background = 'rgba(240,192,64,0.2)';
+        setTimeout(() => el.closest('.run-song').style.background = '', 800);
+      }
+    });
+    return;
+  }
+  const setIndex = getCurrentSetIndex();
+  runsheet.push({ type:'song', song, setIndex, singer:'', singers:[], flowNote:'', aiNote:'' });
+  renderRunsheet();
+  renderLibrary();
+}
+
+// ── PRINT HEADER UPDATE ──
+function updatePrintHeader() {
+  const name = document.getElementById('gig-name').value;
+  const date = document.getElementById('gig-date').value;
+  const loc  = document.getElementById('gig-location').value;
+  const prod = document.getElementById('gig-producer').value;
+
+  document.getElementById('ph-title').textContent = (date ? date + '  ' : '') + (name || 'Setlist');
+
+  // Personnel
+  const checkedPeople = [...document.querySelectorAll('#body-2 input[type=checkbox]:checked')].map(c => c.value);
+  const singers  = checkedPeople.filter(v => ['Maya R','Rettig','Tue','Patterson','Melinda R'].includes(v));
+  const guitars  = checkedPeople.filter(v => ['Waltemire','Leader'].includes(v));
+  const keys     = checkedPeople.filter(v => ['Roberts','Romero'].includes(v));
+  const drums    = checkedPeople.filter(v => ['Chin','Pers'].includes(v));
+
+  document.getElementById('ph-meta').textContent = [loc, prod ? 'Producer: ' + prod : ''].filter(Boolean).join('  ·  ');
+
+  let personnel = '';
+  if (singers.length)  personnel += `<strong>Vocals:</strong> ${singers.join(', ')}<br>`;
+  const rhythm = [...guitars.map(g => g === 'Waltemire' ? 'Waltemire' : 'Leader'),
+                   ...keys.map(k => k === 'Roberts' ? 'Roberts' : 'Romero'),
+                   ...drums.map(d => d === 'Chin' ? 'Chin' : 'Pers')];
+  if (rhythm.length)   personnel += `<strong>Rhythm:</strong> ${rhythm.join(', ')}<br>`;
+  if (bandConfig.horns === 'full') personnel += `<strong>Horns:</strong> TBD<br>`;
+  if (prod)            personnel += `<strong>Producer:</strong> ${prod}<br>`;
+
+  document.getElementById('ph-personnel').innerHTML = personnel;
+}
+
+// ── SAVE / LOAD ──
+function saveGig() {
+  const gig = {
+    name: document.getElementById('gig-name').value,
+    date: document.getElementById('gig-date').value,
+    location: document.getElementById('gig-location').value,
+    producer: document.getElementById('gig-producer').value,
+    notes: document.getElementById('gig-notes').value,
+    sets,
+    runsheet,
+    encoreSelected,
+    bandConfig,
+    savedAt: new Date().toISOString()
+  };
+  const key = 'drsetlist_' + (gig.name || 'gig').replace(/\s+/g,'_').toLowerCase();
+  localStorage.setItem(key, JSON.stringify(gig));
+  localStorage.setItem('drsetlist_last', key);
+
+  // Show saved confirmation
+  const btn = document.getElementById('save-btn');
+  btn.textContent = '✓ Saved';
+  btn.style.color = 'var(--green)';
+  setTimeout(() => { btn.textContent = 'Save'; btn.style.color = ''; }, 2000);
+}
+
+function loadGig() {
+  // List saved gigs
+  const keys = Object.keys(localStorage).filter(k => k.startsWith('drsetlist_') && k !== 'drsetlist_last');
+  if (!keys.length) { alert('No saved gigs found.'); return; }
+
+  const list = keys.map(k => {
+    try { const g = JSON.parse(localStorage.getItem(k)); return { key: k, name: g.name, date: g.date }; }
+    catch(e) { return null; }
+  }).filter(Boolean);
+
+  const choice = prompt('Saved gigs:\n' + list.map((g,i) => `${i+1}. ${g.date} — ${g.name}`).join('\n') + '\n\nEnter number to load:');
+  if (!choice) return;
+  const idx = parseInt(choice) - 1;
+  if (isNaN(idx) || !list[idx]) return;
+
+  const gig = JSON.parse(localStorage.getItem(list[idx].key));
+  document.getElementById('gig-name').value = gig.name || '';
+  document.getElementById('gig-date').value = gig.date || '';
+  document.getElementById('gig-location').value = gig.location || '';
+  document.getElementById('gig-producer').value = gig.producer || '';
+  document.getElementById('gig-notes').value = gig.notes || '';
+
+  if (gig.sets) { window.sets = gig.sets; sets.splice(0, sets.length, ...gig.sets); renderSets(); }
+  if (gig.runsheet) { runsheet.splice(0, runsheet.length, ...gig.runsheet); }
+  if (gig.bandConfig) Object.assign(bandConfig, gig.bandConfig);
+  if (gig.encoreSelected) encoreSelected = gig.encoreSelected;
+
+  renderRunsheet();
+  renderLibrary();
+  updatePrintHeader();
+  document.getElementById('encore-bar').style.display = 'block';
+  document.getElementById('showflow-bar').style.display = 'block';
+  setStatus(`✓ Loaded: ${gig.name}`);
+}
+
+// ── SHOW FLOW (algorithmic, no API) ──
+function generateShowFlow() {
+  const songs = runsheet.filter(r => r.type === 'song');
+  if (!songs.length) return;
+
+  const activeTags = (id) => [...(document.getElementById(id)||{querySelectorAll:()=>[]}).querySelectorAll('.tag.active')].map(t=>t.textContent);
+  const eventTypes = activeTags('event-type-tags').join(', ');
+  const climate = activeTags('climate-tags').join(', ');
+  const isMilitary = /military|ceremony/i.test(eventTypes);
+  const isWedding = /wedding/i.test(eventTypes);
+
+  // Transition phrases library
+  const highToHigh = ['Right into…', 'Don\'t let \'em breathe — straight into…', 'Keep it going with…', 'No break —'];
+  const highToMid  = ['Let it settle… then…', 'Take it down a notch with…', 'Bring it back with…'];
+  const midToHigh  = ['Now let\'s bring it back up —', 'Time to turn it up —', 'Everybody on your feet —'];
+  const midToLow   = ['Slow it down with…', 'Here\'s one for the couples —', 'Take a moment with…'];
+  const lowToMid   = ['Coming back with…', 'Let\'s bring some energy back —'];
+  const openers    = ['Kicking things off with…', 'Let\'s get started —', 'Good evening everyone —'];
+  const closers    = ['Closing out the set with…', 'Last one before the break —', 'To close out the set —'];
+  const militaryLines = ['Thank you for your service.', 'This one goes out to everyone who\'s served.', 'We are honored to play for you tonight.'];
+  const weddingLines  = ['To the happy couple!', 'Get on the dance floor for this one!'];
+
+  const rand = arr => arr[Math.floor(Math.random() * arr.length)];
+
+  songs.forEach((r, i) => {
+    if (r.flowNote) return; // don't overwrite user edits
+    const energy = getEnergyLevel(r.song);
+    const prevEnergy = i > 0 ? getEnergyLevel(songs[i-1].song) : energy;
+    const nextEnergy = i < songs.length-1 ? getEnergyLevel(songs[i+1].song) : energy;
+    const isFirst = i === 0;
+    const isLast = i === songs.length - 1;
+
+    let note = '';
+    if (isFirst) {
+      note = rand(openers);
+      if (isMilitary) note += ' ' + rand(militaryLines);
+    } else if (isLast) {
+      note = rand(closers);
+    } else {
+      if (prevEnergy === 3 && energy === 3) note = rand(highToHigh);
+      else if (prevEnergy === 3 && energy <= 2) note = rand(highToMid);
+      else if (prevEnergy <= 2 && energy === 3) note = rand(midToHigh);
+      else if (prevEnergy === 2 && energy === 1) note = rand(midToLow);
+      else if (prevEnergy === 1 && energy >= 2) note = rand(lowToMid);
+      else note = 'Into…';
+    }
+
+    if (isWedding && i === Math.floor(songs.length / 2)) note += ' ' + rand(weddingLines);
+    if (isMilitary && (r.song['Patriotic']||'').trim() && !isFirst) note += ' ' + rand(militaryLines);
+
+    r.aiNote = note;
+  });
+
+  renderRunsheet();
+}
+
+// ── UPDATED RENDER RUNSHEET with singer buttons, key, horn star ──
+
 
 </script>
 </body>
