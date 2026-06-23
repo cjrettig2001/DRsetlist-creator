@@ -267,8 +267,8 @@
     </div>
 
     <div class="ai-generate-area">
-      <button class="btn btn-ai" onclick="generateFlow()">✦ Generate Show Flow with AI</button>
-      <div class="ai-spinner" id="ai-spinner">✦ Claude is writing your show flow…</div>
+      <button class="btn btn-ai" onclick="generateFlow()">✦ Suggest Setlist / Generate Show Flow</button>
+      <div class="ai-spinner" id="ai-spinner">✦ Claude is thinking…</div>
     </div>
 
   </div>
@@ -359,6 +359,7 @@ let runsheet = [];
 let dragIndex = null;
 
 window.addEventListener('load', () => { renderSets(); loadSheet(); });
+window._sets = sets;
 
 // ── SHEET ──
 async function loadSheet() {
@@ -544,6 +545,7 @@ function findKB(songName) {
 
 // ── SETS ──
 function renderSets() {
+  window._sets = sets;
   const el = document.getElementById('sets-list');
   el.innerHTML = sets.map((s,i) => `
     <div class="set-row">
@@ -702,7 +704,7 @@ function drop(e,i){ e.preventDefault(); document.querySelectorAll('.run-song').f
 // ── AI SHOW FLOW ──
 async function generateFlow() {
   const songs = runsheet.filter(r=>r.type==='song');
-  if(!songs.length){ alert('Add some songs to the runsheet first!'); return; }
+  const hasSetlist = songs.length > 0;
 
   const gigName = document.getElementById('gig-name').value;
   const gigDate = document.getElementById('gig-date').value;
@@ -712,10 +714,51 @@ async function generateFlow() {
   const climate = activeTags('climate-tags');
   const ageRange = activeTags('age-tags');
   const energy = activeTags('energy-tags');
+  const hornConfig = bandConfig.horns;
+  const guitarConfig = bandConfig.guitars;
+  const keysConfig = bandConfig.keys;
 
-  const setlist = songs.map((r,i)=>`${i+1}. "${r.song['Song']}" by ${r.song['Artist']} (Key: ${r.song['Key']}, Genre: ${r.song['Genre']})`).join('\n');
+  // Build song history summary for AI context
+  // Top 25 most played recently (sorted by play count)
+  const recentSongs = Object.entries(SONG_KB)
+    .filter(([,v]) => v.play_count >= 2)
+    .sort((a,b) => b[1].play_count - a[1].play_count)
+    .slice(0, 25)
+    .map(([name, v]) => {
+      const cutNote = v.cut_guitar_count > 0 ? 'cut-safe' : 'needs-full-band';
+      const hornNote = v.with_horns_count > 0 && v.without_horns_count === 0 ? 'horns-only' : 
+                       v.without_horns_count > 0 ? 'no-horns-ok' : '';
+      const topSingers = Object.entries(v.singers).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([s])=>s).join('/');
+      return `"${name}" (${v.play_count}x, ${cutNote}${hornNote?', '+hornNote:''}, singers:${topSingers||'various'})`;
+    }).join('\n');
 
-  const prompt = `You are an experienced bandleader helping write show flow notes for a professional band called DR.
+  // Songs played less recently (candidates to dust off)
+  const olderSongs = Object.entries(SONG_KB)
+    .filter(([,v]) => v.play_count === 1)
+    .map(([name, v]) => {
+      const topSingers = Object.entries(v.singers).sort((a,b)=>b[1]-a[1]).slice(0,1).map(([s])=>s).join('/');
+      return `"${name}" (singers:${topSingers||'various'})`;
+    }).slice(0, 20).join('\n');
+
+  // Available songs from loaded sheet
+  const availableSongs = allSongs.map(s => {
+    const hasHorns = !!(s['Horns']||'').trim();
+    const isAcoustic = !!(s['Acoustic']||'').trim();
+    const kb = findKB(s['Song']);
+    const cutSafe = kb ? kb.cut_guitar_count > 0 : true;
+    return `"${s['Song']}" (Key:${s['Key']||'?'}, Genre:${s['Genre']||'?'}, Horns:${hasHorns?'yes':'no'}, CutSafe:${cutSafe?'yes':'unknown'})`;
+  }).join('\n');
+
+  let prompt;
+
+  if (!hasSetlist) {
+    // MODE 1: Suggest a full setlist
+    const sets = window._sets || [{name:'Set 1', minutes:45}];
+    const totalMins = sets.reduce((s,set)=>s+set.minutes, 0);
+    const approxSongs = Math.round(totalMins / 4); // ~4 min/song average
+
+    prompt = `You are an experienced bandleader for Downrange (DR), a professional Army band based in DC. 
+You are building a setlist for an upcoming gig.
 
 GIG DETAILS:
 - Event: ${gigName||'Not specified'}
@@ -724,26 +767,74 @@ GIG DETAILS:
 - Audience climate: ${climate||'Not specified'}
 - Age range: ${ageRange||'Not specified'}
 - Energy level: ${energy||'Not specified'}
+- Band config: ${guitarConfig === 'cut' ? '1 guitar (cut-down)' : '2 guitars (full)'}, ${keysConfig === 'cut' ? '1 keyboard (cut-down)' : '2 keyboards (full)'}, horns: ${hornConfig}
+- Additional notes: ${gigNotes||'None'}
+- Sets: ${sets.map(s=>`${s.name} (${s.minutes} min)`).join(', ')}
+- Approximate songs needed: ${approxSongs}
+
+SONG HISTORY (most played recently - these are reliable):
+${recentSongs}
+
+SONGS WE HAVEN'T PLAYED IN A WHILE (consider if time allows):
+${olderSongs}
+
+ALL AVAILABLE SONGS IN LIBRARY:
+${availableSongs}
+
+YOUR TASK:
+Suggest a setlist of approximately ${approxSongs} songs from the available library that fits this gig.
+
+RULES:
+1. Prioritize recently played songs (from history) — these are road-tested
+2. Only suggest songs marked "cut-safe" if guitars or keys are cut-down
+3. Only suggest songs with "Horns:yes" if hornConfig is "full"; avoid them if "none"
+4. Match the audience vibe — conservative/military = more patriotic/classic, younger = more current pop/rock
+5. Vary the singers across the set
+6. Think about energy arc — don't front-load all ballads or all bangers
+7. If there's clearly time (totalMins > 60), sprinkle in 1-2 older songs we haven't played recently
+8. Each set should have a strong opener and closer
+
+Respond ONLY with this JSON (no markdown, no extra text):
+{
+  "setlist": [
+    {"song": "Song Title", "singer": "Singer Name", "set": 1, "note": "Brief show flow note or transition cue"},
+    ...
+  ],
+  "summary": "2-3 sentence reasoning for these choices given the gig context"
+}`;
+
+  } else {
+    // MODE 2: Write show flow notes for existing setlist
+    const setlistStr = songs.map((r,i)=>`${i+1}. "${r.song['Song']}" by ${r.song['Artist']} (Key: ${r.song['Key']}, Genre: ${r.song['Genre']})`).join('\n');
+
+    prompt = `You are an experienced bandleader for Downrange (DR), a professional Army band.
+Write show flow notes for each song in this setlist.
+
+GIG DETAILS:
+- Event: ${gigName||'Not specified'}
+- Date: ${gigDate||'Not specified'}
+- Type: ${eventType||'Not specified'}
+- Audience climate: ${climate||'Not specified'}
+- Age range: ${ageRange||'Not specified'}
+- Energy level: ${energy||'Not specified'}
+- Horns: ${hornConfig}, Guitars: ${guitarConfig}, Keys: ${keysConfig}
 - Additional notes: ${gigNotes||'None'}
 
 SETLIST:
-${setlist}
+${setlistStr}
 
-For EACH song, write a brief show flow note (1-3 sentences) that a bandleader would say or do between songs. These can include:
-- Banter or crowd engagement lines to say before/after the song
-- Transition cues (e.g. "go right into…", "after the last note, hold for applause")
-- Specific tips based on the audience vibe (e.g. patriotic moments, energy management)
-- Singer introductions if appropriate
-- Reminders about special moments (key changes, endings, etc.)
+For EACH song write a practical show flow note (1-3 sentences):
+- Banter or crowd lines to say before/after
+- Transition cues ("go right into…", "hold for applause then…")
+- Energy tips based on audience
+- Singer intro moments
+- Key changes or special endings to remember
+- Patriotic callouts if appropriate for the audience
 
-Keep notes practical, natural-sounding, and tailored to the specific audience.
-
-Respond ONLY with a JSON array, one entry per song in order, like:
-[
-  {"note": "..."},
-  {"note": "..."}
-]
-No other text, no markdown fences.`;
+Respond ONLY with JSON array, one per song:
+[{"note": "..."}, ...]
+No markdown fences.`;
+  }
 
   document.getElementById('ai-spinner').style.display='block';
   document.querySelector('.btn-ai').disabled=true;
@@ -754,29 +845,58 @@ No other text, no markdown fences.`;
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
+        max_tokens: 2000,
         messages: [{role:'user', content: prompt}]
       })
     });
     const data = await res.json();
     const text = data.content.map(c=>c.text||'').join('');
-    const notes = JSON.parse(text.replace(/```json|```/g,'').trim());
+    const clean = text.replace(/```json|```/g,'').trim();
 
-    let songIdx=0;
-    runsheet.forEach((r,i)=>{
-      if(r.type!=='song') return;
-      if(notes[songIdx]){
-        runsheet[i].aiNote = notes[songIdx].note;
-        if(!runsheet[i].flowNote) runsheet[i].flowNote='';
+    if (!hasSetlist) {
+      // Parse suggested setlist and populate runsheet
+      const result = JSON.parse(clean);
+      if (result.summary) {
+        // Show summary briefly
+        document.getElementById('ai-spinner').textContent = '✦ ' + result.summary;
+        setTimeout(() => { document.getElementById('ai-spinner').style.display='none'; document.getElementById('ai-spinner').textContent='✦ Claude is thinking…'; }, 6000);
       }
-      songIdx++;
-    });
-    renderRunsheet();
+      // Find and add each suggested song
+      let added = 0;
+      for (const item of result.setlist) {
+        const match = allSongs.find(s => 
+          s['Song'].toLowerCase().trim() === item.song.toLowerCase().trim() ||
+          s['Song'].toLowerCase().includes(item.song.toLowerCase().substring(0,8))
+        );
+        if (match) {
+          const setIdx = Math.max(0, (item.set||1) - 1);
+          runsheet.push({type:'song', song:match, setIndex:setIdx, flowNote:'', aiNote: item.note||''});
+          added++;
+        }
+      }
+      renderRunsheet();
+      renderLibrary();
+      setStatus(`✦ AI suggested ${added} songs`);
+    } else {
+      // Add flow notes to existing runsheet
+      const notes = JSON.parse(clean);
+      let songIdx=0;
+      runsheet.forEach((r,i)=>{
+        if(r.type!=='song') return;
+        if(notes[songIdx]){
+          runsheet[i].aiNote = notes[songIdx].note;
+          if(!runsheet[i].flowNote) runsheet[i].flowNote='';
+        }
+        songIdx++;
+      });
+      renderRunsheet();
+      document.getElementById('ai-spinner').style.display='none';
+    }
   } catch(e) {
-    alert('AI generation failed. Check your connection and try again.');
+    alert('AI generation failed. Try again.');
     console.error(e);
-  } finally {
     document.getElementById('ai-spinner').style.display='none';
+  } finally {
     document.querySelector('.btn-ai').disabled=false;
   }
 }
