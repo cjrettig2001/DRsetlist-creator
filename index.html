@@ -227,12 +227,10 @@
 <header>
   <h1>DR Setlist Creator</h1>
   <div class="hdr-right">
-    <label class="btn btn-accent" style="cursor:pointer;margin:0;font-size:13px">
-      📂 Load Songs (CSV or Excel)
-      <input type="file" accept=".csv,.xlsx,.xls" onchange="loadCSVFile(this)" style="display:none"/>
-    </label>
-    <button class="btn btn-outline" id="url-toggle" onclick="document.getElementById('url-row').style.display=document.getElementById('url-row').style.display==='none'?'flex':'none'">URL ▾</button>
-    <span id="status">Download your Google Sheet as CSV or XLSX, then click Load</span>
+    <input type="file" id="file-input" accept=".csv,.xlsx,.xls" onchange="loadCSVFile(this)" style="display:none"/>
+    <button class="btn btn-accent" style="font-size:13px" onclick="document.getElementById('file-input').click()">📂 Load Songs (CSV or Excel)</button>
+    <button class="btn btn-outline" onclick="document.getElementById('url-row').style.display=document.getElementById('url-row').style.display==='none'?'flex':'none'">URL ▾</button>
+    <span id="status">Download your Google Sheet as XLSX, then click Load</span>
   </div>
   <div id="url-row" style="display:none;align-items:center;gap:6px;padding:6px 20px;background:var(--surface);border-bottom:1px solid var(--border)">
     <input id="sheet-url" type="text" placeholder="Google Sheet published CSV URL…" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 8px;outline:none"
