@@ -315,16 +315,61 @@ async function loadSheet() {
   const url = document.getElementById('sheet-url').value.trim();
   if (!url) return;
   setStatus('Loading…');
-  try {
-    const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-    const res = await fetch(proxy);
-    const json = await res.json();
-    allSongs = parseCSV(json.contents);
+
+  // Try direct fetch first (works if CORS allows), then fall back to proxies
+  const proxies = [
+    u => u, // direct
+    u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+    u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+    u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+  ];
+
+  for (let i = 0; i < proxies.length; i++) {
+    try {
+      setStatus(`Loading… (attempt ${i+1})`);
+      const res = await fetch(proxies[i](url));
+      if (!res.ok) continue;
+      let csv;
+      if (i === 0 || i === 2 || i === 3) {
+        csv = await res.text();
+      } else {
+        const json = await res.json();
+        csv = json.contents;
+      }
+      if (!csv || csv.length < 10) continue;
+      allSongs = parseCSV(csv);
+      if (!allSongs.length) continue;
+      populateGenres();
+      renderLibrary();
+      document.getElementById('song-total').textContent = allSongs.length + ' songs';
+      setStatus(`✓ ${allSongs.length} songs`);
+      return;
+    } catch(e) { continue; }
+  }
+  setStatus('Failed to load — see instructions below', true);
+  document.getElementById('song-list').innerHTML = `
+    <div class="empty-msg" style="text-align:left;padding:20px;line-height:1.8">
+      <strong style="color:var(--accent)">Could not fetch the sheet automatically.</strong><br><br>
+      Try this workaround:<br>
+      1. Open your Google Sheet<br>
+      2. <strong>File → Download → CSV</strong><br>
+      3. Click the 📂 button below to load it directly<br><br>
+      <input type="file" accept=".csv" onchange="loadCSVFile(this)" style="color:var(--text);font-size:12px"/>
+    </div>`;
+}
+
+function loadCSVFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    allSongs = parseCSV(e.target.result);
     populateGenres();
     renderLibrary();
     document.getElementById('song-total').textContent = allSongs.length + ' songs';
-    setStatus(`✓ ${allSongs.length} songs`);
-  } catch(e) { setStatus('Failed to load', true); }
+    setStatus(`✓ ${allSongs.length} songs (from file)`);
+  };
+  reader.readAsText(file);
 }
 
 function setStatus(msg, err=false) {
