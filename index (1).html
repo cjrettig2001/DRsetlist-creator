@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DR Setlist Creator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0e0e10; --surface: #1a1a1e; --surface2: #242428;
+      --border: #2e2e34; --accent: #f0c040; --accent-dim: rgba(240,192,64,0.12);
+      --text: #e8e8ec; --muted: #7a7a88; --danger: #e05555; --green: #4caf82;
+      --ai: #7c6af7;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; min-height: 100vh; }
+
+    /* TOP BAR */
+    header { border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    header h1 { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 2px; color: var(--accent); white-space: nowrap; }
+    .header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    #sheet-url { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 5px 9px; outline: none; width: 320px; }
+    #sheet-url:focus { border-color: var(--accent); }
+    .btn { border: none; border-radius: 4px; padding: 5px 13px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; }
+    .btn-accent { background: var(--accent); color: #0e0e10; }
+    .btn-accent:hover { background: #ffd060; }
+    .btn-outline { background: none; border: 1px solid var(--border); color: var(--muted); }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-ai { background: var(--ai); color: white; }
+    .btn-ai:hover { background: #9585f8; }
+    .btn-danger { background: none; border: 1px solid var(--border); color: var(--muted); }
+    .btn-danger:hover { border-color: var(--danger); color: var(--danger); }
+    #status { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+
+    /* THREE-COLUMN LAYOUT */
+    .app { display: grid; grid-template-columns: 320px 1fr 380px; height: calc(100vh - 53px); }
+
+    /* ── LEFT: GIG SETUP ── */
+    .gig-panel { border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+    .gig-panel::-webkit-scrollbar { width: 4px; }
+    .gig-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 1.2px; color: var(--muted); margin-bottom: 10px; }
+
+    label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+    label:first-of-type { margin-top: 0; }
+    input[type=text], input[type=number], select, textarea {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text); font-size: 13px; padding: 7px 9px;
+      outline: none; font-family: 'Inter', sans-serif;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 70px; font-size: 12px; line-height: 1.5; }
+
+    .tag-grid { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
+    .tag { padding: 4px 10px; border-radius: 3px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); color: var(--muted); background: none; transition: all 0.15s; }
+    .tag:hover { border-color: var(--accent); color: var(--accent); }
+    .tag.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+    .set-row { display: grid; grid-template-columns: 1fr 80px 24px; align-items: center; gap: 6px; margin-bottom: 6px; }
+    .set-row input { margin: 0; }
+    .set-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); white-space: nowrap; }
+    .icon-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 2px; transition: color 0.1s; }
+    .icon-btn:hover { color: var(--danger); }
+    .add-set-btn { font-size: 12px; color: var(--accent); background: none; border: 1px dashed var(--border); border-radius: 4px; padding: 5px; width: 100%; cursor: pointer; transition: all 0.1s; }
+    .add-set-btn:hover { border-color: var(--accent); }
+
+    .ai-generate-area { padding: 14px 16px; }
+    .ai-generate-area .btn-ai { width: 100%; padding: 9px; font-size: 13px; }
+    .ai-spinner { display: none; text-align: center; color: var(--ai); font-size: 12px; margin-top: 8px; }
+
+    /* ── MIDDLE: LIBRARY ── */
+    .library { border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+    .lib-header { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 7px; }
+    .lib-title { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 1.2px; color: var(--muted); }
+    .filters { display: flex; gap: 5px; flex-wrap: wrap; }
+    .filters input, .filters select { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 12px; padding: 5px 7px; outline: none; font-family: 'Inter', sans-serif; flex: 1; min-width: 90px; }
+    .filters input:focus, .filters select:focus { border-color: var(--accent); }
+
+    .col-headers { display: grid; grid-template-columns: 1fr 55px 65px 80px 60px 26px; padding: 5px 12px; gap: 6px; background: var(--surface); border-bottom: 1px solid var(--border); }
+    .col-headers span { font-size: 9px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); }
+
+    .song-list { flex: 1; overflow-y: auto; }
+    .song-list::-webkit-scrollbar { width: 4px; }
+    .song-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .song-row { display: grid; grid-template-columns: 1fr 55px 65px 80px 60px 26px; align-items: center; padding: 7px 12px; border-bottom: 1px solid var(--border); gap: 6px; transition: background 0.1s; }
+    .song-row:hover { background: var(--surface); }
+    .song-row .title { font-weight: 500; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .song-row .meta { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .genre-badge { display: inline-block; font-size: 9px; font-weight: 600; padding: 2px 4px; border-radius: 2px; background: var(--accent-dim); color: var(--accent); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .singers-cell { display: flex; gap: 2px; flex-wrap: wrap; }
+    .sdot { font-size: 8px; padding: 1px 3px; border-radius: 2px; font-weight: 600; }
+    .sdot.yes { background: rgba(76,175,130,0.2); color: var(--green); }
+    .sdot.maybe { background: rgba(240,192,64,0.15); color: var(--accent); }
+    .add-btn { background: none; border: 1px solid var(--border); border-radius: 3px; color: var(--muted); cursor: pointer; width: 22px; height: 22px; font-size: 15px; display: flex; align-items: center; justify-content: center; transition: all 0.1s; flex-shrink: 0; }
+    .add-btn:hover { background: var(--accent); color: #0e0e10; border-color: var(--accent); }
+    .add-btn.added { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+    .empty-msg { padding: 28px 16px; text-align: center; color: var(--muted); font-size: 12px; }
+
+    /* ── RIGHT: RUNSHEET ── */
+    .runsheet-panel { display: flex; flex-direction: column; overflow: hidden; }
+    .runsheet-header { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .runsheet-title-wrap { display: flex; flex-direction: column; gap: 2px; }
+    #runsheet-name { background: none; border: none; color: var(--text); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1.5px; outline: none; width: 200px; }
+    #runsheet-name::placeholder { color: var(--muted); }
+    .runsheet-meta { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+    .runsheet-actions { display: flex; gap: 5px; }
+
+    .runsheet-body { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .runsheet-body::-webkit-scrollbar { width: 4px; }
+    .runsheet-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* SET BLOCK */
+    .set-block { margin-bottom: 4px; }
+    .set-block-header { padding: 7px 14px; background: var(--surface); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); }
+    .set-block-title { font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 1.2px; color: var(--accent); }
+    .set-block-meta { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+    /* RUNSHEET ITEM */
+    .run-item { border-bottom: 1px solid var(--border); }
+    .run-song { display: grid; grid-template-columns: 20px 1fr auto; align-items: start; padding: 8px 14px 4px; gap: 8px; cursor: grab; transition: background 0.1s; }
+    .run-song:hover { background: var(--surface); }
+    .run-song:active { cursor: grabbing; }
+    .run-song.drag-over { border-top: 2px solid var(--accent); }
+    .run-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); padding-top: 2px; }
+    .run-song-info .run-title { font-weight: 500; font-size: 12px; }
+    .run-song-info .run-detail { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-top: 1px; }
+    .run-remove { background: none; border: none; color: var(--border); cursor: pointer; font-size: 15px; padding: 1px 3px; border-radius: 2px; transition: color 0.1s; }
+    .run-remove:hover { color: var(--danger); }
+
+    /* TRANSITION / FLOW NOTE */
+    .flow-note { padding: 4px 14px 8px 42px; }
+    .flow-note-inner { position: relative; }
+    .flow-note textarea {
+      width: 100%; background: transparent; border: none; border-left: 2px solid var(--border);
+      color: var(--muted); font-size: 11px; font-family: 'Inter', sans-serif;
+      padding: 4px 8px; outline: none; resize: none; line-height: 1.5;
+      min-height: 32px; transition: border-color 0.1s;
+    }
+    .flow-note textarea:focus { border-color: var(--ai); color: var(--text); background: var(--surface2); }
+    .flow-note textarea.ai-generated { border-color: var(--ai); color: #a89cf7; font-style: italic; }
+    .flow-note textarea.user-edited { border-color: var(--border); color: var(--muted); font-style: normal; }
+
+    /* BREAK BLOCK */
+    .break-block { padding: 8px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; background: var(--surface2); }
+    .break-label { font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: 1px; color: var(--muted); }
+    .break-mins { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+    .empty-runsheet { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 8px; color: var(--muted); }
+    .empty-runsheet .icon { font-size: 32px; opacity: 0.2; }
+    .empty-runsheet p { font-size: 12px; }
+
+    /* PRINT */
+    @media print {
+      header, .gig-panel, .library, .runsheet-actions, .run-remove, .add-btn { display: none !important; }
+      body { background: white; color: black; font-size: 12px; }
+      .app { display: block; height: auto; }
+      .runsheet-panel { display: block; overflow: visible; }
+      .runsheet-body { overflow: visible; }
+      .runsheet-header { border-bottom: 2px solid black; padding: 0 0 10px; margin-bottom: 8px; }
+      #runsheet-name { color: black; font-size: 22px; }
+      .runsheet-meta { color: #555; }
+      .set-block-header { background: #eee; }
+      .set-block-title { color: black; }
+      .run-num { color: black; }
+      .flow-note textarea { color: #444; border-left-color: #aaa; font-style: italic; background: transparent; }
+      .break-block { background: #f5f5f5; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>DR Setlist Creator</h1>
+  <div class="header-right">
+    <input id="sheet-url" type="text" placeholder="Google Sheet CSV URL…"
+      value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ94KIxEH-9Gssi6ZRaNqBJp91G4hsgyMVhpST68IhN27Daly4UR31xGLYcWOYSL_Ba3wCXeOYvRDor/pub?output=csv"/>
+    <button class="btn btn-accent" onclick="loadSheet()">Load</button>
+    <span id="status">Loading…</span>
+  </div>
+</header>
+
+<div class="app">
+
+  <!-- ── LEFT: GIG SETUP ── -->
+  <div class="gig-panel">
+
+    <div class="section">
+      <div class="section-title">Gig Details</div>
+      <label>Event Name / Venue</label>
+      <input type="text" id="gig-name" placeholder="e.g. Fort Myer Military Ball"/>
+      <label>Date</label>
+      <input type="text" id="gig-date" placeholder="e.g. Nov 8, 2025"/>
+      <label>Event Type</label>
+      <div class="tag-grid" id="event-type-tags">
+        <button class="tag" onclick="toggleTag(this)">Military Ball</button>
+        <button class="tag" onclick="toggleTag(this)">Ceremony</button>
+        <button class="tag" onclick="toggleTag(this)">Corporate</button>
+        <button class="tag" onclick="toggleTag(this)">Wedding</button>
+        <button class="tag" onclick="toggleTag(this)">Private Party</button>
+        <button class="tag" onclick="toggleTag(this)">Concert</button>
+        <button class="tag" onclick="toggleTag(this)">Outdoor Festival</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Audience Vibe</div>
+      <label>Political / Cultural Climate</label>
+      <div class="tag-grid" id="climate-tags">
+        <button class="tag" onclick="toggleTag(this)">Conservative</button>
+        <button class="tag" onclick="toggleTag(this)">Liberal</button>
+        <button class="tag" onclick="toggleTag(this)">Mixed</button>
+        <button class="tag" onclick="toggleTag(this)">Patriotic</button>
+        <button class="tag" onclick="toggleTag(this)">Diverse</button>
+      </div>
+      <label>Age Range</label>
+      <div class="tag-grid" id="age-tags">
+        <button class="tag" onclick="toggleTag(this)">All Ages</button>
+        <button class="tag" onclick="toggleTag(this)">Young Adults</button>
+        <button class="tag" onclick="toggleTag(this)">30s–50s</button>
+        <button class="tag" onclick="toggleTag(this)">Older Crowd</button>
+      </div>
+      <label>Energy Level</label>
+      <div class="tag-grid" id="energy-tags">
+        <button class="tag" onclick="toggleTag(this)">High Energy</button>
+        <button class="tag" onclick="toggleTag(this)">Mix of Both</button>
+        <button class="tag" onclick="toggleTag(this)">Dinner / Chill</button>
+      </div>
+      <label>Additional Context</label>
+      <textarea id="gig-notes" placeholder="e.g. Medal ceremony at 9pm, crowd will be seated for first set, general wants country songs…"></textarea>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Set Structure</div>
+      <div id="sets-list"></div>
+      <button class="add-set-btn" onclick="addSet()">+ Add Set</button>
+    </div>
+
+    <div class="ai-generate-area">
+      <button class="btn btn-ai" onclick="generateFlow()">✦ Generate Show Flow with AI</button>
+      <div class="ai-spinner" id="ai-spinner">✦ Claude is writing your show flow…</div>
+    </div>
+
+  </div>
+
+  <!-- ── MIDDLE: LIBRARY ── -->
+  <div class="library">
+    <div class="lib-header">
+      <span class="lib-title">Song Library — <span id="song-total">—</span></span>
+      <div class="filters">
+        <input id="search" type="text" placeholder="Search…" oninput="renderLibrary()"/>
+        <select id="filter-singer" onchange="renderLibrary()">
+          <option value="">All Singers</option>
+          <option>Maya R</option><option>Rettig</option><option>Tue</option>
+          <option>Patterson</option><option>Melinda R</option>
+        </select>
+        <select id="filter-genre" onchange="renderLibrary()">
+          <option value="">All Genres</option>
+        </select>
+        <select id="filter-flags" onchange="renderLibrary()">
+          <option value="">All Songs</option>
+          <option value="Original">Originals</option>
+          <option value="Patriotic">Patriotic</option>
+          <option value="Acoustic">Acoustic</option>
+          <option value="Horns">Has Horns</option>
+          <option value="Wedding Band Vibes">Wedding Vibes</option>
+        </select>
+      </div>
+    </div>
+    <div class="col-headers">
+      <span>Title</span><span>Cat#</span><span>Key</span><span>Artist</span><span>Genre</span><span></span>
+    </div>
+    <div class="song-list" id="song-list">
+      <div class="empty-msg">Loading your sheet…</div>
+    </div>
+  </div>
+
+  <!-- ── RIGHT: RUNSHEET ── -->
+  <div class="runsheet-panel">
+    <div class="runsheet-header">
+      <div class="runsheet-title-wrap">
+        <input id="runsheet-name" type="text" placeholder="SHOW NAME"/>
+        <span class="runsheet-meta" id="runsheet-meta">0 songs</span>
+      </div>
+      <div class="runsheet-actions">
+        <button class="btn btn-outline" onclick="clearRunsheet()">Clear</button>
+        <button class="btn btn-accent" onclick="window.print()">Print</button>
+      </div>
+    </div>
+    <div class="runsheet-body" id="runsheet-body">
+      <div class="empty-runsheet">
+        <div class="icon">🎵</div>
+        <p>Add songs from the library</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SINGER_COLS = ['Maya R','Rettig','Tue','Patterson','Melinda R'];
+let allSongs = [];
+// sets: [{name, minutes}]
+let sets = [{name:'Set 1', minutes: 45}];
+// runsheet: [{type:'song', song, setIndex, flowNote, aiNote} | {type:'break', label, minutes}]
+let runsheet = [];
+let dragIndex = null;
+
+window.addEventListener('load', () => { renderSets(); loadSheet(); });
+
+// ── SHEET ──
+async function loadSheet() {
+  const url = document.getElementById('sheet-url').value.trim();
+  if (!url) return;
+  setStatus('Loading…');
+  try {
+    const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    const res = await fetch(proxy);
+    const json = await res.json();
+    allSongs = parseCSV(json.contents);
+    populateGenres();
+    renderLibrary();
+    document.getElementById('song-total').textContent = allSongs.length + ' songs';
+    setStatus(`✓ ${allSongs.length} songs`);
+  } catch(e) { setStatus('Failed to load', true); }
+}
+
+function setStatus(msg, err=false) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.style.color = err ? '#e05555' : '#7a7a88';
+}
+
+function parseCSV(csv) {
+  const lines = csv.trim().split('\n');
+  const headers = smartSplit(lines[0]).map(h => h.trim().replace(/^"|"$/g,''));
+  return lines.slice(1).map(line => {
+    const vals = smartSplit(line);
+    const obj = {};
+    headers.forEach((h,i) => obj[h] = (vals[i]||'').trim().replace(/^"|"$/g,''));
+    return obj;
+  }).filter(s => s['Song']);
+}
+
+function smartSplit(line) {
+  const r=[]; let cur='', inQ=false;
+  for(let ch of line){
+    if(ch==='"') inQ=!inQ;
+    else if(ch===','&&!inQ){r.push(cur);cur='';}
+    else cur+=ch;
+  }
+  r.push(cur); return r;
+}
+
+function populateGenres() {
+  const g = new Set();
+  allSongs.forEach(s => (s['Genre']||'').split(',').forEach(x => g.add(x.trim())));
+  document.getElementById('filter-genre').innerHTML =
+    '<option value="">All Genres</option>' +
+    [...g].sort().map(x => `<option>${x}</option>`).join('');
+}
+
+// ── LIBRARY ──
+function renderLibrary() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const singer = document.getElementById('filter-singer').value;
+  const genre  = document.getElementById('filter-genre').value;
+  const flag   = document.getElementById('filter-flags').value;
+  const inRunsheet = new Set(runsheet.filter(r=>r.type==='song').map(r=>r.song['Song']));
+
+  let filtered = allSongs.filter(s => {
+    if(search){const t=(s['Song']||'')+(s['Artist']||'')+(s['Genre']||''); if(!t.toLowerCase().includes(search)) return false;}
+    if(singer){const v=(s[singer]||'').toUpperCase(); if(v!=='X'&&v!=='X?') return false;}
+    if(genre && !(s['Genre']||'').includes(genre)) return false;
+    if(flag){const v=(s[flag]||'').trim().toUpperCase(); if(!v||v==='N/A') return false;}
+    return true;
+  });
+
+  const list = document.getElementById('song-list');
+  if(!filtered.length){ list.innerHTML='<div class="empty-msg">No songs match.</div>'; return; }
+
+  list.innerHTML = filtered.map(s => {
+    const singers = SINGER_COLS.map(sc => {
+      const v=(s[sc]||'').trim().toUpperCase();
+      if(v==='X') return `<span class="sdot yes">${sc.split(' ')[0][0]}</span>`;
+      if(v==='X?') return `<span class="sdot maybe">${sc.split(' ')[0][0]}?</span>`;
+      return '';
+    }).join('');
+    const added = inRunsheet.has(s['Song']);
+    const enc = encodeURIComponent(JSON.stringify(s));
+    return `<div class="song-row">
+      <span class="title" title="${esc(s['Song'])}">${esc(s['Song'])}</span>
+      <span class="meta">${esc(s['Catalog #'])||'—'}</span>
+      <span class="meta">${esc(s['Key'])||'—'}</span>
+      <span class="meta" title="${esc(s['Artist'])}">${esc(s['Artist'])||'—'}</span>
+      <span class="genre-badge" title="${esc(s['Genre'])}">${esc((s['Genre']||'').split(',')[0].trim())||'—'}</span>
+      <button class="add-btn${added?' added':''}" onclick="addSong('${enc}')" title="Add to runsheet">+</button>
+    </div>`;
+  }).join('');
+}
+
+// ── SETS ──
+function renderSets() {
+  const el = document.getElementById('sets-list');
+  el.innerHTML = sets.map((s,i) => `
+    <div class="set-row">
+      <input type="text" value="${esc(s.name)}" oninput="sets[${i}].name=this.value; renderRunsheet();" placeholder="Set ${i+1}"/>
+      <input type="number" value="${s.minutes}" min="10" max="120" oninput="sets[${i}].minutes=+this.value; renderRunsheet();" placeholder="min"/>
+      <button class="icon-btn" onclick="removeSet(${i})">×</button>
+    </div>`).join('');
+}
+
+function addSet() {
+  sets.push({name:`Set ${sets.length+1}`, minutes:45});
+  renderSets();
+  // Add break before new set if runsheet has songs
+  if(runsheet.length>0){
+    runsheet.push({type:'break', label:'Break', minutes:15});
+  }
+  renderRunsheet();
+}
+
+function removeSet(i) {
+  if(sets.length===1) return;
+  sets.splice(i,1);
+  renderSets(); renderRunsheet();
+}
+
+function toggleTag(btn){ btn.classList.toggle('active'); }
+
+// ── ADD SONG TO RUNSHEET ──
+function addSong(enc) {
+  const song = JSON.parse(decodeURIComponent(enc));
+  // Figure out which set to put it in based on current counts
+  const setIndex = getCurrentSetIndex();
+  runsheet.push({type:'song', song, setIndex, flowNote:'', aiNote:''});
+  renderRunsheet();
+  renderLibrary();
+}
+
+function getCurrentSetIndex() {
+  if(!runsheet.length) return 0;
+  const last = [...runsheet].reverse().find(r=>r.type==='song');
+  return last ? last.setIndex : 0;
+}
+
+function removeItem(i) {
+  runsheet.splice(i,1);
+  renderRunsheet(); renderLibrary();
+}
+
+function clearRunsheet() {
+  if(runsheet.length && !confirm('Clear the runsheet?')) return;
+  runsheet = []; renderRunsheet(); renderLibrary();
+}
+
+// ── RENDER RUNSHEET ──
+function renderRunsheet() {
+  const el = document.getElementById('runsheet-body');
+  if(!runsheet.length){
+    el.innerHTML=`<div class="empty-runsheet"><div class="icon">🎵</div><p>Add songs from the library</p></div>`;
+    updateMeta(); return;
+  }
+
+  // Group by set
+  const grouped = {};
+  let songCounter = 0;
+  runsheet.forEach((item,i) => {
+    const key = item.type==='song' ? `set_${item.setIndex}` : `break_${i}`;
+    if(!grouped[key]) grouped[key]={type:item.type, setIndex:item.setIndex, items:[]};
+    grouped[key].items.push({item,i});
+  });
+
+  // Build HTML set by set
+  let html='';
+  // track per-set song counts + times
+  const setData={};
+  runsheet.forEach(r=>{
+    if(r.type!=='song') return;
+    if(!setData[r.setIndex]) setData[r.setIndex]={count:0, secs:0};
+    setData[r.setIndex].count++;
+    const t=parseFloat(r.song['Time']);
+    if(!isNaN(t)) setData[r.setIndex].secs += t*24*60*60;
+  });
+
+  let overallNum=0;
+  const setsSeen=new Set();
+
+  runsheet.forEach((item,i)=>{
+    if(item.type==='break'){
+      html+=`<div class="break-block">
+        <span class="break-label">— BREAK —</span>
+        <span class="break-mins">${item.minutes} min</span>
+        <button class="icon-btn" onclick="removeItem(${i})" style="margin-left:auto">×</button>
+      </div>`;
+      return;
+    }
+    // Song
+    const si = item.setIndex;
+    if(!setsSeen.has(si)){
+      setsSeen.add(si);
+      const sd = setData[si]||{count:0,secs:0};
+      const setObj = sets[si]||{name:`Set ${si+1}`,minutes:45};
+      const mins = Math.round(sd.secs/60);
+      const cap = setObj.minutes;
+      const over = mins>cap ? ` ⚠ ${mins-cap}min over` : '';
+      html+=`<div class="set-block-header">
+        <span class="set-block-title">${esc(setObj.name)}</span>
+        <span class="set-block-meta">${sd.count} songs · ${mins}/${cap} min${over}</span>
+      </div>`;
+    }
+    overallNum++;
+    const singers = SINGER_COLS.filter(sc=>(item.song[sc]||'').toUpperCase().startsWith('X')).map(sc=>sc.split(' ')[0]).join(', ');
+    const detail = [item.song['Key'], item.song['Artist'], singers].filter(Boolean).join(' · ');
+    const noteVal = item.flowNote || item.aiNote || '';
+    const noteClass = item.aiNote && !item.flowNote ? 'ai-generated' : 'user-edited';
+    html+=`<div class="run-item">
+      <div class="run-song" draggable="true"
+        ondragstart="dragStart(${i})" ondragover="dragOver(event,${i})"
+        ondrop="drop(event,${i})" ondragleave="dragLeave(event)">
+        <span class="run-num">${overallNum}</span>
+        <div class="run-song-info">
+          <div class="run-title">${esc(item.song['Song'])}</div>
+          <div class="run-detail">${esc(detail)}</div>
+        </div>
+        <button class="run-remove" onclick="removeItem(${i})">×</button>
+      </div>
+      <div class="flow-note">
+        <textarea class="flow-note-inner ${noteClass}" rows="2"
+          placeholder="Transition / show note…"
+          oninput="runsheet[${i}].flowNote=this.value; this.className='flow-note-inner user-edited'; autoResize(this)"
+        >${esc(noteVal)}</textarea>
+      </div>
+    </div>`;
+  });
+
+  el.innerHTML=html;
+  // auto-resize all textareas
+  el.querySelectorAll('textarea').forEach(autoResize);
+  updateMeta();
+}
+
+function autoResize(ta){ ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; }
+
+function updateMeta() {
+  const songs = runsheet.filter(r=>r.type==='song');
+  const totalSecs = songs.reduce((s,r)=>{const t=parseFloat(r.song['Time']); return s+(isNaN(t)?0:t*24*60*60);},0);
+  const mins = Math.round(totalSecs/60);
+  document.getElementById('runsheet-meta').textContent =
+    `${songs.length} songs${mins>0?' · ~'+mins+' min':''}`;
+}
+
+// ── DRAG & DROP ──
+function dragStart(i){ dragIndex=i; }
+function dragOver(e,i){ e.preventDefault(); document.querySelectorAll('.run-song').forEach(el=>el.classList.remove('drag-over')); document.querySelectorAll('.run-song')[Array.from(document.querySelectorAll('.run-item')).findIndex(el=>el.contains(event.target))]?.classList.add('drag-over'); }
+function dragLeave(e){ e.target.closest('.run-song')?.classList.remove('drag-over'); }
+function drop(e,i){ e.preventDefault(); document.querySelectorAll('.run-song').forEach(el=>el.classList.remove('drag-over')); if(dragIndex===null||dragIndex===i) return; const m=runsheet.splice(dragIndex,1)[0]; runsheet.splice(i,0,m); dragIndex=null; renderRunsheet(); }
+
+// ── AI SHOW FLOW ──
+async function generateFlow() {
+  const songs = runsheet.filter(r=>r.type==='song');
+  if(!songs.length){ alert('Add some songs to the runsheet first!'); return; }
+
+  const gigName = document.getElementById('gig-name').value;
+  const gigDate = document.getElementById('gig-date').value;
+  const gigNotes = document.getElementById('gig-notes').value;
+  const activeTags = (group) => [...document.getElementById(group).querySelectorAll('.tag.active')].map(t=>t.textContent).join(', ');
+  const eventType = activeTags('event-type-tags');
+  const climate = activeTags('climate-tags');
+  const ageRange = activeTags('age-tags');
+  const energy = activeTags('energy-tags');
+
+  const setlist = songs.map((r,i)=>`${i+1}. "${r.song['Song']}" by ${r.song['Artist']} (Key: ${r.song['Key']}, Genre: ${r.song['Genre']})`).join('\n');
+
+  const prompt = `You are an experienced bandleader helping write show flow notes for a professional band called DR.
+
+GIG DETAILS:
+- Event: ${gigName||'Not specified'}
+- Date: ${gigDate||'Not specified'}
+- Type: ${eventType||'Not specified'}
+- Audience climate: ${climate||'Not specified'}
+- Age range: ${ageRange||'Not specified'}
+- Energy level: ${energy||'Not specified'}
+- Additional notes: ${gigNotes||'None'}
+
+SETLIST:
+${setlist}
+
+For EACH song, write a brief show flow note (1-3 sentences) that a bandleader would say or do between songs. These can include:
+- Banter or crowd engagement lines to say before/after the song
+- Transition cues (e.g. "go right into…", "after the last note, hold for applause")
+- Specific tips based on the audience vibe (e.g. patriotic moments, energy management)
+- Singer introductions if appropriate
+- Reminders about special moments (key changes, endings, etc.)
+
+Keep notes practical, natural-sounding, and tailored to the specific audience.
+
+Respond ONLY with a JSON array, one entry per song in order, like:
+[
+  {"note": "..."},
+  {"note": "..."}
+]
+No other text, no markdown fences.`;
+
+  document.getElementById('ai-spinner').style.display='block';
+  document.querySelector('.btn-ai').disabled=true;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{role:'user', content: prompt}]
+      })
+    });
+    const data = await res.json();
+    const text = data.content.map(c=>c.text||'').join('');
+    const notes = JSON.parse(text.replace(/```json|```/g,'').trim());
+
+    let songIdx=0;
+    runsheet.forEach((r,i)=>{
+      if(r.type!=='song') return;
+      if(notes[songIdx]){
+        runsheet[i].aiNote = notes[songIdx].note;
+        if(!runsheet[i].flowNote) runsheet[i].flowNote='';
+      }
+      songIdx++;
+    });
+    renderRunsheet();
+  } catch(e) {
+    alert('AI generation failed. Check your connection and try again.');
+    console.error(e);
+  } finally {
+    document.getElementById('ai-spinner').style.display='none';
+    document.querySelector('.btn-ai').disabled=false;
+  }
+}
+
+function esc(str){ return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>
