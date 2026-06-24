@@ -927,7 +927,7 @@ function suggestBanter(song, position, totalSongs, setIndex) {
   // WEDDING songs
   else if(isWedding && /love|beautiful|better|forever|always/i.test(title)) {
     banter = rand([
-      "This one goes out to the happy couple -- " + (document.getElementById('gig-name').value||'tonight's newlyweds') + "!",
+      "This one goes out to the happy couple -- " + (document.getElementById('gig-name').value||"tonight's newlyweds") + "!",
       "Grab your partner for this one!",
       "All the couples on the floor for this one!"
     ]);
