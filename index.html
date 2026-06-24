@@ -1117,18 +1117,23 @@ function renderLibrary(){
     const enc=encodeURIComponent(JSON.stringify(s));
     const primarySinger = kb&&kb.primary_singer ? kb.primary_singer.split(' ')[0] : '';
     const isMobile = window.innerWidth < 768;
-    return `<div class="song-row"${rowWarn}>
-      <div>
-        <div class="title" title="${esc(s['Song'])}">${esc(s['Song'])}${hasHorns?'<span class="horn-star">*</span>':''}</div>
-        ${isMobile?`<div style="font-size:10px;color:var(--muted);margin-top:1px">${esc(s['Artist'])||''} ${primarySinger?'· <span style=color:var(--green)>'+primarySinger+'★</span>':''}</div>`:''}
-      </div>
-      <span class="meta">${esc(s['Key'])||'—'}</span>
-      ${isMobile?'':`<span class="meta" title="${esc(s['Artist'])}">${esc(s['Artist'])||'—'}</span>`}
-      <span class="genre-badge" title="${esc(s['Genre'])}">${esc((s['Genre']||'').split(',')[0].trim())||'—'}</span>
-      ${isMobile?'':histBadge}
-      ${isMobile?'':``}
-      <button class="add-btn${inSet?' added':''}" onclick="addSong('${enc}')" title="Add">+</button>
-    </div>`;
+    const subLine = isMobile
+      ? '<div style="font-size:10px;color:var(--muted);margin-top:1px">'+esc(s['Artist']||'')+(primarySinger?' · <span style="color:var(--green)">'+primarySinger+'★</span>':'')+'</div>'
+      : '';
+    const artistCol = isMobile ? '' : '<span class="meta" title="'+esc(s['Artist'])+'">'+esc(s['Artist']||'—')+'</span>';
+    const histCol = isMobile ? '' : histBadge;
+    const addedCls = inSet ? ' added' : '';
+    return '<div class="song-row"'+rowWarn+'>'
+      +'<div>'
+      +'<div class="title" title="'+esc(s['Song'])+'">'+esc(s['Song'])+(hasHorns?'<span class="horn-star">*</span>':'')+'</div>'
+      +subLine
+      +'</div>'
+      +'<span class="meta">'+(esc(s['Key'])||'—')+'</span>'
+      +artistCol
+      +'<span class="genre-badge" title="'+esc(s['Genre'])+'">'+esc((s['Genre']||'').split(',')[0].trim()||'—')+'</span>'
+      +histCol
+      +'<button class="add-btn'+addedCls+'" onclick="addSong(''+enc+'')" title="Add">+</button>'
+      +'</div>';
   }).join('');
 }
 
@@ -1403,12 +1408,11 @@ function renderRunsheet(){
     let keyDisplay='';
     if(needsLock){
       const opts=parseKeyOptions(rawKey);
-      keyDisplay=`<select class="key-lock-sel needs-lock" onchange="lockKey(${i},this.value)" title="Select key">
-        <option value="">KEY?</option>
-        ${opts.map(k=>`<option value="${k}">${k}</option>`).join('')}
-      </select>`;
+      const optHtml=opts.map(k=>'<option value="'+k+'">'+k+'</option>').join('');
+      keyDisplay='<select class="key-lock-sel needs-lock" onchange="lockKey('+i+',this.value)" title="Select key"><option value="">KEY?</option>'+optHtml+'</select>';
     } else {
-      keyDisplay=`<span style="color:${key?'var(--accent)':'var(--muted)'};font-size:10px;font-family:'JetBrains Mono',monospace">${key||'—'}</span>`;
+      const keyColor=key?'var(--accent)':'var(--muted)';
+      keyDisplay='<span style="color:'+keyColor+';font-size:10px;font-family:JetBrains Mono,monospace">'+(key||'—')+'</span>';
     }
 
     // Singer buttons — show primary indicator
@@ -1417,10 +1421,12 @@ function renderRunsheet(){
     const assigned=item.singers&&item.singers.length?item.singers:(item.singer?[item.singer]:[]);
     const singerPool=(availableSingers.length?availableSingers:SINGER_COLS)
       .filter(singer=>{const v=(s[singer]||'').toUpperCase(); return v==='X'||v==='X?';});
-    const singerBtns=singerPool.map(singer=>{
+    const singerBtns=singerPool.map(function(singer){
       const isActive=assigned.includes(singer);
       const isPrimary=singer===primary;
-      return `<button class="singer-btn${isActive?' active':''}" onclick="toggleSinger(${i},'${singer}')" title="${isPrimary?'Primary singer':''}">${singer.split(' ')[0]}${isPrimary?'★':''}</button>`;
+      const cls='singer-btn'+(isActive?' active':'');
+      const lbl=singer.split(' ')[0]+(isPrimary?'★':'');
+      return '<button class="'+cls+'" onclick="toggleSinger('+i+',''+singer+'')" title="'+(isPrimary?'Primary singer':'')+'">'+lbl+'</button>';
     }).join('');
 
     const detail=[s['Artist'],assigned.join(' / ')].filter(Boolean).join(' · ');
