@@ -32,19 +32,34 @@
     .btn-ai{background:var(--ai);color:white;border:none;border-radius:4px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;}
     .btn-ai:hover{background:#9585f8;}
 
-    /* LAYOUT - mobile tabs */
-    .app{display:flex;flex-direction:column;height:calc(100vh - 49px);}
+    /* LAYOUT - responsive */
+    /* Desktop: 3 columns */
+    @media (min-width: 768px) {
+      .app{display:grid;grid-template-columns:300px 1fr 380px;height:calc(100vh - 49px);}
+      .tab-bar{display:none;}
+      .tab-panel{display:flex!important;flex-direction:column;overflow:hidden;}
+      .tab-panel.active{display:flex;}
+      .gig-panel{border-right:1px solid var(--border);overflow-y:auto;}
+      .library{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+      .runsheet-panel{display:flex;flex-direction:column;overflow:hidden;}
+      .gig-panel::-webkit-scrollbar{width:4px;}
+      .gig-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+    }
 
-    /* TAB BAR */
-    .tab-bar{display:flex;border-bottom:2px solid var(--border);background:var(--surface);flex-shrink:0;}
+    /* Mobile: tabs */
+    @media (max-width: 767px) {
+      .app{display:flex;flex-direction:column;height:calc(100vh - 49px);}
+      .tab-bar{display:flex;border-bottom:2px solid var(--border);background:var(--surface);flex-shrink:0;}
+      .tab-panel{display:none;flex:1;overflow-y:auto;}
+      .tab-panel.active{display:flex;flex-direction:column;}
+      .tab-panel::-webkit-scrollbar{width:4px;}
+      .tab-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+    }
+
+    /* TAB BAR (mobile only) */
+    .tab-bar{display:none;}
     .tab-btn{flex:1;padding:10px 4px;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--muted);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;}
     .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
-
-    /* PANELS */
-    .tab-panel{display:none;flex:1;overflow-y:auto;}
-    .tab-panel.active{display:flex;flex-direction:column;}
-    .tab-panel::-webkit-scrollbar{width:4px;}
-    .tab-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
     /* ── LEFT: WIZARD ── */
     .gig-panel{display:flex;flex-direction:column;}
@@ -62,13 +77,13 @@
     .step-body{padding:4px 14px 12px;display:flex;flex-direction:column;gap:0;}
 
     label.field-label{display:block;font-size:10px;color:var(--muted);margin-bottom:3px;margin-top:9px;text-transform:uppercase;letter-spacing:0.5px;}
-    .step-body input[type=text],.step-body textarea,.step-body select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:16px;padding:8px 10px;outline:none;font-family:'Inter',sans-serif;}
+    .step-body input[type=text],.step-body textarea,.step-body select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:16px;padding:8px 10px;outline:none;font-family:'Inter',sans-serif;} @media(min-width:768px){.step-body input[type=text],.step-body textarea,.step-body select{font-size:13px;padding:6px 8px;}}
     .step-body input:focus,.step-body textarea:focus{border-color:var(--accent);}
     .step-body textarea{resize:vertical;min-height:55px;line-height:1.5;}
 
     /* PERSONNEL */
     .person-grid{display:flex;flex-direction:column;gap:4px;margin-top:4px;}
-    .person-check{display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer;padding:10px 12px;border-radius:4px;border:1px solid var(--border);transition:all 0.1s;}
+    .person-check{display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer;padding:10px 12px;border-radius:4px;border:1px solid var(--border);transition:all 0.1s;} @media(min-width:768px){.person-check{font-size:12px;padding:6px 8px;}}
     .person-check:hover{border-color:var(--accent);background:var(--accent-dim);}
     .person-check.on{border-color:var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:500;}
     .person-check input{accent-color:var(--accent);width:13px;height:13px;cursor:pointer;}
@@ -77,7 +92,7 @@
 
     /* TAGS */
     .tag-grid{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
-    .tag{padding:7px 12px;border-radius:3px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:none;transition:all 0.15s;}
+    .tag{padding:7px 12px;border-radius:3px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:none;transition:all 0.15s;} @media(min-width:768px){.tag{padding:4px 9px;font-size:11px;}}
     .tag:hover{border-color:var(--accent);color:var(--accent);}
     .tag.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
 
@@ -104,6 +119,7 @@
     .filters input:focus,.filters select:focus{border-color:var(--accent);}
 
     .col-headers{display:grid;grid-template-columns:1fr 45px 55px 35px;padding:4px 11px;gap:5px;background:var(--surface);border-bottom:1px solid var(--border);}
+    @media (min-width:768px){.col-headers{grid-template-columns:1fr 55px 65px 85px 60px 45px 28px;}}
     .col-headers span{font-size:9px;font-weight:600;letter-spacing:0.7px;text-transform:uppercase;color:var(--muted);}
 
     .song-list{flex:1;overflow-y:auto;}
@@ -111,13 +127,14 @@
     .song-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
     .song-row{display:grid;grid-template-columns:1fr 45px 55px 35px;align-items:center;padding:8px 11px;border-bottom:1px solid var(--border);gap:5px;transition:background 0.1s;}
+    @media (min-width:768px){.song-row{grid-template-columns:1fr 55px 65px 85px 60px 45px 28px;padding:6px 11px;}}
     .song-row:hover{background:var(--surface);}
     .song-row .title{font-weight:500;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .song-row .meta{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .genre-badge{display:inline-block;font-size:9px;font-weight:600;padding:1px 4px;border-radius:2px;background:var(--accent-dim);color:var(--accent);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
     .hist-badge{font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace;padding:2px 4px;border-radius:2px;background:rgba(76,175,130,0.15);color:var(--green);white-space:nowrap;}
     .hist-badge.new{background:rgba(124,106,247,0.15);color:var(--ai);}
-    .add-btn{background:none;border:1px solid var(--border);border-radius:3px;color:var(--muted);cursor:pointer;width:32px;height:32px;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all 0.1s;flex-shrink:0;}
+    .add-btn{background:none;border:1px solid var(--border);border-radius:3px;color:var(--muted);cursor:pointer;width:32px;height:32px;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all 0.1s;flex-shrink:0;} @media(min-width:768px){.add-btn{width:22px;height:22px;font-size:15px;}}
     .add-btn:hover{background:var(--accent);color:#0e0e10;border-color:var(--accent);}
     .empty-msg{padding:24px 14px;text-align:center;color:var(--muted);font-size:12px;}
 
@@ -416,7 +433,7 @@
       </div>
     </div>
     <div class="col-headers">
-      <span>Title</span><span>Key</span><span>Genre</span><span></span>
+      <span>Title</span><span>Key</span><span id="col-artist" style="display:none">Artist</span><span>Genre</span><span id="col-hist" style="display:none">Hist</span><span></span>
     </div>
     <div class="song-list" id="song-list">
       <div class="empty-msg">Load your CSV to get started.</div>
@@ -491,12 +508,37 @@ let bandConfig = {horns:'full', guitars:'full', keys:'full'};
 let dragIndex = null;
 let _encoreCandidates = [];
 
-window.addEventListener('load', () => { renderSets(); });
+window.addEventListener('load', () => { 
+  renderSets(); 
+  updateLayout();
+  window.addEventListener('resize', updateLayout);
+});
+
+function updateLayout() {
+  const isDesktop = window.innerWidth >= 768;
+  const colArtist = document.getElementById('col-artist');
+  const colHist = document.getElementById('col-hist');
+  if(colArtist) colArtist.style.display = isDesktop ? '' : 'none';
+  if(colHist) colHist.style.display = isDesktop ? '' : 'none';
+  // On desktop, make sure all tabs visible
+  if(isDesktop) {
+    document.querySelectorAll('.tab-panel').forEach(p => {
+      p.style.display = 'flex';
+      p.style.flexDirection = 'column';
+    });
+  } else {
+    // Re-apply mobile tab state
+    showTab(currentTab || 'gig');
+  }
+  renderLibrary();
+}
 
 // ── UTILS ──
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+let currentTab = 'gig';
 function showTab(name) {
+  currentTab = name;
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
@@ -962,13 +1004,17 @@ function renderLibrary(){
 
     const enc=encodeURIComponent(JSON.stringify(s));
     const primarySinger = kb&&kb.primary_singer ? kb.primary_singer.split(' ')[0] : '';
+    const isMobile = window.innerWidth < 768;
     return `<div class="song-row"${rowWarn}>
       <div>
         <div class="title" title="${esc(s['Song'])}">${esc(s['Song'])}${hasHorns?'<span class="horn-star">*</span>':''}</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:1px">${esc(s['Artist'])||''} ${primarySinger?'· <span style=color:var(--green)>'+primarySinger+'★</span>':''}</div>
+        ${isMobile?`<div style="font-size:10px;color:var(--muted);margin-top:1px">${esc(s['Artist'])||''} ${primarySinger?'· <span style=color:var(--green)>'+primarySinger+'★</span>':''}</div>`:''}
       </div>
       <span class="meta">${esc(s['Key'])||'—'}</span>
+      ${isMobile?'':`<span class="meta" title="${esc(s['Artist'])}">${esc(s['Artist'])||'—'}</span>`}
       <span class="genre-badge" title="${esc(s['Genre'])}">${esc((s['Genre']||'').split(',')[0].trim())||'—'}</span>
+      ${isMobile?'':histBadge}
+      ${isMobile?'':``}
       <button class="add-btn${inSet?' added':''}" onclick="addSong('${enc}')" title="Add">+</button>
     </div>`;
   }).join('');
