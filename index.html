@@ -729,9 +729,10 @@ function renderLibrary(){
       +'<span class="meta">'+esc(s['Key']||'--')+'</span>'
       +'<span class="genre-badge" title="'+esc(s['Genre'])+'">'+esc((s['Genre']||'').split(',')[0].trim()||'--')+'</span>'
       +artistCell+histCell+catCell
-      +'<button class="add-btn"'+addCls+' onclick="addSong(''+enc+'')" title="Add">+</button>'
+      +'<button class="add-btn"'+addCls+' data-enc="'+enc+'" title="Add">+</button>'
       +'</div>';
   }).join('');
+  list.onclick=function(e){var b=e.target.closest('.add-btn');if(b)addSong(b.dataset.enc);};
 }
 
 // -- ADD SONG --
