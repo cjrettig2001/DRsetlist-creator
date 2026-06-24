@@ -533,7 +533,7 @@ function updateLayout() {
   renderLibrary();
 }
 
-// ── UTILS ──
+// -- UTILS --
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 let currentTab = 'gig';
@@ -557,12 +557,12 @@ function setStatus(msg,err=false){
   el.textContent=msg; el.style.color=err?'#e05555':'#7a7a88';
 }
 
-// ── WIZARD ──
+// -- WIZARD --
 let currentStep = 1;
 function openStep(n){
   if(n===2) showTab('library'); // show songs while filling details
   document.getElementById(`step-${currentStep}`).classList.add('complete');
-  document.getElementById(`chk-${currentStep}`).textContent='✓';
+  document.getElementById(`chk-${currentStep}`).textContent='v';
   document.getElementById(`body-${currentStep}`).style.display='none';
   const next = document.getElementById(`step-${n}`);
   next.classList.remove('locked');
@@ -580,7 +580,7 @@ function toggleStep(n){
   if(!isOpen) body.style.flexDirection='column';
 }
 
-// ── PERSONNEL ──
+// -- PERSONNEL --
 function updatePersonnel(){
   const checks = document.querySelectorAll('#body-2 input[type=checkbox]');
   availableSingers=[];
@@ -605,21 +605,21 @@ function updatePersonnel(){
   const cutParts=[];
   if(guitars===1) cutParts.push('1 guitar');
   if(keys===1) cutParts.push('1 keyboard');
-  let html=`<strong style="color:var(--text)">${availableSingers.length} singer${availableSingers.length!==1?'s':''}</strong> · ${guitars}g · ${keys}k · ${drums}dr`;
-  if(cutParts.length) html+=`<br><span class="cut-warn">⚠ Cut-down: ${cutParts.join(', ')}</span>`;
+  let html=`<strong style="color:var(--text)">${availableSingers.length} singer${availableSingers.length!==1?'s':''}</strong> . ${guitars}g . ${keys}k . ${drums}dr`;
+  if(cutParts.length) html+=`<br><span class="cut-warn">! Cut-down: ${cutParts.join(', ')}</span>`;
   document.getElementById('personnel-summary').innerHTML=html;
   updatePrintHeader();
   renderLibrary();
 }
 
-// ── SETS ──
+// -- SETS --
 function renderSets(){
   window._sets=sets;
   document.getElementById('sets-list').innerHTML=sets.map((s,i)=>`
     <div class="set-row">
       <input type="text" value="${esc(s.name)}" oninput="sets[${i}].name=this.value;renderRunsheet()"/>
       <input type="number" value="${s.minutes}" min="10" max="180" oninput="sets[${i}].minutes=+this.value;renderRunsheet()"/>
-      <button class="icon-btn" onclick="removeSet(${i})">×</button>
+      <button class="icon-btn" onclick="removeSet(${i})"></button>
     </div>`).join('');
 }
 function addSet(){
@@ -633,11 +633,11 @@ function removeSet(i){
   sets.splice(i,1); renderSets(); renderRunsheet();
 }
 
-// ── LOAD SHEET ──
+// -- LOAD SHEET --
 async function loadSheet(){
   const url=document.getElementById('sheet-url').value.trim();
   if(!url) return;
-  setStatus('Loading…');
+  setStatus('Loading...');
   const proxies=[
     u=>u,
     u=>`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
@@ -646,7 +646,7 @@ async function loadSheet(){
   ];
   for(let i=0;i<proxies.length;i++){
     try{
-      setStatus(`Loading… (${i+1}/4)`);
+      setStatus(`Loading... (${i+1}/4)`);
       const res=await fetch(proxies[i](url));
       if(!res.ok) continue;
       let csv;
@@ -657,18 +657,18 @@ async function loadSheet(){
       if(!allSongs.length) continue;
       populateGenres(); renderLibrary();
       document.getElementById('song-total').textContent=allSongs.length+' songs';
-      setStatus(`✓ ${allSongs.length} songs`);
+      setStatus(`v ${allSongs.length} songs`);
       return;
     } catch(e){ continue; }
   }
-  setStatus('URL failed — use CSV button',true);
-  document.getElementById('song-list').innerHTML='<div class="empty-msg">URL load failed.<br>Use the 📂 CSV button to load from file.</div>';
+  setStatus('URL failed -- use CSV button',true);
+  document.getElementById('song-list').innerHTML='<div class="empty-msg">URL load failed.<br>Use the  CSV button to load from file.</div>';
 }
 
 function loadCSVFile(input){
   const file=input.files[0]; if(!file) return;
   const isXLSX = /\.xlsx?$/i.test(file.name);
-  setStatus('Reading file…');
+  setStatus('Reading file...');
 
   if(isXLSX){
     // Parse xlsx without SheetJS by extracting the shared strings + sheet XML
@@ -678,9 +678,9 @@ function loadCSVFile(input){
         allSongs=parseCSV(csv);
         populateGenres(); renderLibrary();
         document.getElementById('song-total').textContent=allSongs.length+' songs';
-        setStatus('✓ '+allSongs.length+' songs from Excel');
+        setStatus('v '+allSongs.length+' songs from Excel');
       }).catch(err=>{
-        setStatus('Excel parse failed — please save as CSV instead', true);
+        setStatus('Excel parse failed -- please save as CSV instead', true);
         console.error(err);
       });
     };
@@ -691,7 +691,7 @@ function loadCSVFile(input){
       allSongs=parseCSV(e.target.result);
       populateGenres(); renderLibrary();
       document.getElementById('song-total').textContent=allSongs.length+' songs';
-      setStatus('✓ '+allSongs.length+' songs from CSV');
+      setStatus('v '+allSongs.length+' songs from CSV');
     };
     reader.readAsText(file);
   }
@@ -837,7 +837,7 @@ function populateGenres(){
   document.getElementById('filter-genre').innerHTML='<option value="">All Genres</option>'+[...g].sort().map(x=>`<option>${x}</option>`).join('');
 }
 
-// ── KB LOOKUP ──
+// -- KB LOOKUP --
 function findKB(songName){
   if(!songName) return null;
   const name=songName.toLowerCase().trim();
@@ -893,20 +893,20 @@ function suggestBanter(song, position, totalSongs, setIndex) {
     const openers = [
       "Good evening everybody, we are Downrange and we are SO glad to be here with you tonight!",
       "How's everybody feeling tonight?! Let's GO!",
-      "Welcome everybody — we are Downrange, and we're gonna have a great time tonight!"
+      "Welcome everybody -- we are Downrange, and we're gonna have a great time tonight!"
     ];
     banter = rand(openers);
     if(isMilitary) banter += " We are honored to be here with the finest men and women in the world.";
   } else if(isSetOpener && setIndex > 0) {
-    banter = rand(["We're back! You ready?!", "Alright, who's ready for more?!", "Round " + (setIndex+1) + " — let's go!"]);
+    banter = rand(["We're back! You ready?!", "Alright, who's ready for more?!", "Round " + (setIndex+1) + " -- let's go!"]);
   }
 
   // CLOSER banter
   else if(isLast) {
     const closers = [
-      "One more for ya — make some noise!",
-      "Last one of the set — give everything you got!",
-      "We'll be right back — but first, one more!"
+      "One more for ya -- make some noise!",
+      "Last one of the set -- give everything you got!",
+      "We'll be right back -- but first, one more!"
     ];
     banter = rand(closers);
   }
@@ -916,7 +916,7 @@ function suggestBanter(song, position, totalSongs, setIndex) {
     if(isMilitary) {
       banter = rand([
         "We want to take a moment to honor everyone in this room who has served or is currently serving. This one's for you.",
-        "To every veteran and active duty service member here tonight — thank you. This song is for you.",
+        "To every veteran and active duty service member here tonight -- thank you. This song is for you.",
         "This next song goes out to the brave men and women who protect our freedom every single day."
       ]);
     } else {
@@ -927,7 +927,7 @@ function suggestBanter(song, position, totalSongs, setIndex) {
   // WEDDING songs
   else if(isWedding && /love|beautiful|better|forever|always/i.test(title)) {
     banter = rand([
-      "This one goes out to the happy couple — " + (document.getElementById('gig-name').value||'tonight's newlyweds') + "!",
+      "This one goes out to the happy couple -- " + (document.getElementById('gig-name').value||'tonight's newlyweds') + "!",
       "Grab your partner for this one!",
       "All the couples on the floor for this one!"
     ]);
@@ -937,7 +937,7 @@ function suggestBanter(song, position, totalSongs, setIndex) {
   else if(/funk|r&b|soul|motown/.test(genre)) {
     banter = rand([
       "I need everybody on their feet for this one!",
-      "Let me see you move! Clap with us — 2 and 4!",
+      "Let me see you move! Clap with us -- 2 and 4!",
       "This is a FEEL GOOD song, people. Let's hear you!"
     ]);
   }
@@ -945,7 +945,7 @@ function suggestBanter(song, position, totalSongs, setIndex) {
   else if(/classic rock|rock/.test(genre)) {
     banter = rand([
       "How many rock fans we got in here tonight?!",
-      "This one goes all the way back — you know the words, sing it with us!",
+      "This one goes all the way back -- you know the words, sing it with us!",
       "Let's hear some noise for this classic!"
     ]);
   }
@@ -953,16 +953,16 @@ function suggestBanter(song, position, totalSongs, setIndex) {
   else if(/country/.test(genre)) {
     banter = rand([
       "Any country fans in the house tonight?!",
-      "This one's for the country lovers — you know who you are!",
+      "This one's for the country lovers -- you know who you are!",
       "Put your hands up if you love country music!"
     ]);
   }
 
   else if(/pop/.test(genre)) {
     banter = rand([
-      "This next song you definitely know — sing it with us!",
-      "Everybody knows this one — let's hear you!",
-      "Come on, don't be shy — sing along!"
+      "This next song you definitely know -- sing it with us!",
+      "Everybody knows this one -- let's hear you!",
+      "Come on, don't be shy -- sing along!"
     ]);
   }
 
@@ -974,7 +974,7 @@ function suggestBanter(song, position, totalSongs, setIndex) {
       banter = rand([
         `Give it up for the incredible ${singer}!`,
         `Let's hear some love for ${singer}!`,
-        `${singer} everybody — isn't she/he incredible?!`
+        `${singer} everybody -- isn't she/he incredible?!`
       ]);
     }
   }
@@ -982,7 +982,7 @@ function suggestBanter(song, position, totalSongs, setIndex) {
   return banter;
 }
 
-// ── ENERGY + GENRE ──
+// -- ENERGY + GENRE --
 function getEnergyLevel(s){
   const g=(s['Genre']||'').toLowerCase();
   if(/hard rock|metal|punk|funk|dance|hip.?hop|rap|upbeat|rock & roll/.test(g)) return 3;
@@ -998,7 +998,7 @@ function getGenreFamily(s){
   return 'other';
 }
 
-// ── GIG SCORE ──
+// -- GIG SCORE --
 function getGigScore(s){
   let score=0;
   const kb=findKB(s['Song']);
@@ -1064,7 +1064,7 @@ function getGigScore(s){
   return score;
 }
 
-// ── LIBRARY ──
+// -- LIBRARY --
 function renderLibrary(){
   const search=document.getElementById('search').value.toLowerCase();
   const singer=document.getElementById('filter-singer').value;
@@ -1110,18 +1110,18 @@ function renderLibrary(){
         rowWarn=' style="background:rgba(224,85,85,0.06)"';
       const bs=score>=40?'style="background:rgba(76,175,130,0.3);color:#4caf82;font-weight:800"':
                score>=20?'style="background:rgba(240,192,64,0.2);color:#f0c040"':'';
-      histBadge=`<span class="hist-badge" ${bs} title="${plays} plays · score:${score}${primary?' · '+primary:''}">${plays}×</span>`;
+      histBadge=`<span class="hist-badge" ${bs} title="${plays} plays . score:${score}${primary?' . '+primary:''}">${plays}</span>`;
     } else {
-      histBadge=`<span class="hist-badge new" title="No history · score:${score}">NEW</span>`;
+      histBadge=`<span class="hist-badge new" title="No history . score:${score}">NEW</span>`;
     }
 
     const enc=encodeURIComponent(JSON.stringify(s));
     const primarySinger = kb&&kb.primary_singer ? kb.primary_singer.split(' ')[0] : '';
     const isMobile = window.innerWidth < 768;
     const subLine = isMobile
-      ? '<div style="font-size:10px;color:var(--muted);margin-top:1px">'+esc(s['Artist']||'')+(primarySinger?' · <span style="color:var(--green)">'+primarySinger+'★</span>':'')+'</div>'
+      ? '<div style="font-size:10px;color:var(--muted);margin-top:1px">'+esc(s['Artist']||'')+(primarySinger?' . <span style="color:var(--green)">'+primarySinger+'*</span>':'')+'</div>'
       : '';
-    const artistCol = isMobile ? '' : '<span class="meta" title="'+esc(s['Artist'])+'">'+esc(s['Artist']||'—')+'</span>';
+    const artistCol = isMobile ? '' : '<span class="meta" title="'+esc(s['Artist'])+'">'+esc(s['Artist']||'--')+'</span>';
     const histCol = isMobile ? '' : histBadge;
     const addedCls = inSet ? ' added' : '';
     return '<div class="song-row"'+rowWarn+'>'
@@ -1129,16 +1129,16 @@ function renderLibrary(){
       +'<div class="title" title="'+esc(s['Song'])+'">'+esc(s['Song'])+(hasHorns?'<span class="horn-star">*</span>':'')+'</div>'
       +subLine
       +'</div>'
-      +'<span class="meta">'+(esc(s['Key'])||'—')+'</span>'
+      +'<span class="meta">'+(esc(s['Key'])||'--')+'</span>'
       +artistCol
-      +'<span class="genre-badge" title="'+esc(s['Genre'])+'">'+esc((s['Genre']||'').split(',')[0].trim()||'—')+'</span>'
+      +'<span class="genre-badge" title="'+esc(s['Genre'])+'">'+esc((s['Genre']||'').split(',')[0].trim()||'--')+'</span>'
       +histCol
       +'<button class="add-btn'+addedCls+'" onclick="addSong(''+enc+'')" title="Add">+</button>'
       +'</div>';
   }).join('');
 }
 
-// ── ADD SONG (duplicate protected) ──
+// -- ADD SONG (duplicate protected) --
 function addSong(enc){
   const song=JSON.parse(decodeURIComponent(enc));
   const key=song['Song'].toLowerCase().trim();
@@ -1171,7 +1171,7 @@ function getCurrentSetIndex(){
   return last?last.setIndex:0;
 }
 
-// ── BUILD SETLIST ──
+// -- BUILD SETLIST --
 function buildSetlist(){
   if(!allSongs.length){alert('Load your song sheet first!'); return;}
   const totalMins=sets.reduce((s,set)=>s+set.minutes,0);
@@ -1251,7 +1251,7 @@ function buildSetlist(){
   document.getElementById('encore-bar').style.display='block';
   document.getElementById('showflow-bar').style.display='block';
   document.getElementById('step-4').classList.add('complete');
-  document.getElementById('chk-4').textContent='✓';
+  document.getElementById('chk-4').textContent='v';
   setStatus('Built ' + runsheet.filter(r=>r.type==='song').length + ' songs - enriching with Last.fm...');
   showTab('runsheet');
   enrichWithLastFm();
@@ -1270,7 +1270,7 @@ function assignSinger(song,singerCount,maxPS){
 function arrangeWithFlow(picked){
   if(!picked.length) return picked;
   const opener=picked.find(x=>x.role==='OPENER')||picked[0];
-  // Strongest closer goes last — never let a CLOSER song end up in middle
+  // Strongest closer goes last -- never let a CLOSER song end up in middle
   const closerCandidates=picked.filter(x=>x.role==='CLOSER');
   const closer=closerCandidates.length
     ? closerCandidates.sort((a,b)=>(b.kb&&b.kb.avg_position||0)-(a.kb&&a.kb.avg_position||0))[0]
@@ -1338,7 +1338,7 @@ function applyLastFm(songName,info){
   if(info.playcount>50000000&&!kb.historical_role) kb.lastfm_role='CLOSER';
 }
 
-// ── KEY LOCK ──
+// -- KEY LOCK --
 function checkKeyLocks(){
   runsheet.forEach(r=>{
     if(r.type!=='song') return;
@@ -1356,16 +1356,16 @@ function parseKeyOptions(keyStr){
   return keyStr.split(/\s*(?:or|\/|\|)\s*/i).map(k=>k.trim()).filter(Boolean);
 }
 
-// ── RENDER RUNSHEET ──
+// -- RENDER RUNSHEET --
 function renderRunsheet(){
   const el=document.getElementById('rs-body');
   const songs=runsheet.filter(r=>r.type==='song');
   const totalSecs=songs.reduce((s,r)=>{const t=parseFloat(r.song['Time']); return s+(isNaN(t)?0:t*24*60*60);},0);
   const mins=Math.round(totalSecs/60);
-  document.getElementById('rs-meta').textContent=`${songs.length} songs${mins>0?' · ~'+mins+' min':''}`;
+  document.getElementById('rs-meta').textContent=`${songs.length} songs${mins>0?' . ~'+mins+' min':''}`;
 
   if(!runsheet.length){
-    el.innerHTML='<div class="empty-rs"><div class="icon">🎵</div><p>Complete the wizard to build your setlist</p></div>';
+    el.innerHTML='<div class="empty-rs"><div class="icon"></div><p>Complete the wizard to build your setlist</p></div>';
     return;
   }
 
@@ -1381,9 +1381,9 @@ function renderRunsheet(){
   runsheet.forEach((item,i)=>{
     if(item.type==='break'){
       html+=`<div class="break-block">
-        <span class="break-label">— BREAK —</span>
+        <span class="break-label">-- BREAK --</span>
         <span class="break-mins">${item.minutes} min</span>
-        <button class="icon-btn" onclick="removeItem(${i})" style="margin-left:auto">×</button>
+        <button class="icon-btn" onclick="removeItem(${i})" style="margin-left:auto"></button>
       </div>`; return;
     }
     const si=item.setIndex;
@@ -1392,10 +1392,10 @@ function renderRunsheet(){
       const sd=setData[si]||{count:0,secs:0};
       const setObj=sets[si]||{name:`Set ${si+1}`,minutes:45};
       const smins=Math.round(sd.secs/60);
-      const over=smins>setObj.minutes?` ⚠ ${smins-setObj.minutes}m over`:'';
+      const over=smins>setObj.minutes?` ! ${smins-setObj.minutes}m over`:'';
       html+=`<div class="set-block-header">
         <span class="set-block-title">${esc(setObj.name)}</span>
-        <span class="set-block-meta">${sd.count} songs · ${smins}/${setObj.minutes}min${over}</span>
+        <span class="set-block-meta">${sd.count} songs . ${smins}/${setObj.minutes}min${over}</span>
       </div>`;
     }
     overallNum++;
@@ -1405,7 +1405,7 @@ function renderRunsheet(){
     const rawKey=s['Key']||'';
     const needsLock=item.needsKeyLock&&!item.lockedKey;
 
-    // Key display — lock selector if ambiguous
+    // Key display -- lock selector if ambiguous
     let keyDisplay='';
     if(needsLock){
       const opts=parseKeyOptions(rawKey);
@@ -1413,10 +1413,10 @@ function renderRunsheet(){
       keyDisplay='<select class="key-lock-sel needs-lock" onchange="lockKey('+i+',this.value)" title="Select key"><option value="">KEY?</option>'+optHtml+'</select>';
     } else {
       const keyColor=key?'var(--accent)':'var(--muted)';
-      keyDisplay='<span style="color:'+keyColor+';font-size:10px;font-family:JetBrains Mono,monospace">'+(key||'—')+'</span>';
+      keyDisplay='<span style="color:'+keyColor+';font-size:10px;font-family:JetBrains Mono,monospace">'+(key||'--')+'</span>';
     }
 
-    // Singer buttons — show primary indicator
+    // Singer buttons -- show primary indicator
     const kb=findKB(s['Song']);
     const primary=kb&&kb.primary_singer;
     const assigned=item.singers&&item.singers.length?item.singers:(item.singer?[item.singer]:[]);
@@ -1426,11 +1426,11 @@ function renderRunsheet(){
       const isActive=assigned.includes(singer);
       const isPrimary=singer===primary;
       const cls='singer-btn'+(isActive?' active':'');
-      const lbl=singer.split(' ')[0]+(isPrimary?'★':'');
+      const lbl=singer.split(' ')[0]+(isPrimary?'*':'');
       return '<button class="'+cls+'" onclick="toggleSinger('+i+',''+singer+'')" title="'+(isPrimary?'Primary singer':'')+'">'+lbl+'</button>';
     }).join('');
 
-    const detail=[s['Artist'],assigned.join(' / ')].filter(Boolean).join(' · ');
+    const detail=[s['Artist'],assigned.join(' / ')].filter(Boolean).join(' . ');
     const noteVal=item.flowNote||item.aiNote||'';
     const noteClass=item.aiNote&&!item.flowNote?'ai-gen':'';
 
@@ -1444,10 +1444,10 @@ function renderRunsheet(){
           <div class="run-detail">${esc(detail)}</div>
           <div class="singer-assign">${singerBtns}</div>
         </div>
-        <button class="run-remove" onclick="removeItem(${i})">×</button>
+        <button class="run-remove" onclick="removeItem(${i})"></button>
       </div>
       <div class="flow-note">
-        <textarea class="${noteClass}" rows="2" placeholder="Add banter, cues, or crowd direction… (saves permanently)"
+        <textarea class="${noteClass}" rows="2" placeholder="Add banter, cues, or crowd direction... (saves permanently)"
           oninput="runsheet[${i}].flowNote=this.value;saveShowNote(runsheet[${i}].song['Song'],this.value);this.className='';autoResize(this)"
         >${esc(noteVal)}</textarea>
       </div>
@@ -1459,7 +1459,7 @@ function renderRunsheet(){
 }
 function autoResize(ta){ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';}
 
-// ── TOGGLE SINGER ──
+// -- TOGGLE SINGER --
 function toggleSinger(i,singer){
   const item=runsheet[i]; if(!item||item.type!=='song') return;
   if(!item.singers) item.singers=[item.singer||''];
@@ -1470,7 +1470,7 @@ function toggleSinger(i,singer){
   renderRunsheet();
 }
 
-// ── DRAG & DROP ──
+// -- DRAG & DROP --
 function dragStart(i){dragIndex=i;}
 function dragOver(e,i){
   e.preventDefault();
@@ -1490,7 +1490,7 @@ function drop(e,i){
   dragIndex=null; renderRunsheet();
 }
 
-// ── ENCORE ──
+// -- ENCORE --
 function suggestEncores(){
   const inRs=new Set(runsheet.filter(r=>r.type==='song').map(r=>r.song['Song'].toLowerCase().trim()));
   const atag=id=>{const el=document.getElementById(id); return el?[...el.querySelectorAll('.tag.active')].map(t=>t.textContent.toLowerCase()):[];};
@@ -1532,7 +1532,7 @@ function clearEncore(){
   document.getElementById('encore-slot').innerHTML='Click Suggest after building setlist';
 }
 
-// ── SHOW FLOW ──
+// -- SHOW FLOW --
 function generateShowFlow(){
   const songs=runsheet.filter(r=>r.type==='song');
   if(!songs.length) return;
@@ -1552,7 +1552,7 @@ function generateShowFlow(){
   renderRunsheet();
 }
 
-// ── SAVE / LOAD ──
+// -- SAVE / LOAD --
 function saveGig(){
   const gig={
     name:document.getElementById('gig-name').value,
@@ -1566,14 +1566,14 @@ function saveGig(){
   const key='drsetlist_'+(gig.name||'gig').replace(/\s+/g,'_').toLowerCase();
   localStorage.setItem(key,JSON.stringify(gig));
   const btn=document.getElementById('save-btn');
-  btn.textContent='✓ Saved'; btn.style.color='var(--green)';
+  btn.textContent='v Saved'; btn.style.color='var(--green)';
   setTimeout(()=>{btn.textContent='Save';btn.style.color='';},2000);
 }
 function loadGig(){
   const keys=Object.keys(localStorage).filter(k=>k.startsWith('drsetlist_'));
   if(!keys.length){alert('No saved gigs found.'); return;}
   const list=keys.map(k=>{try{const g=JSON.parse(localStorage.getItem(k));return{key:k,name:g.name,date:g.date};}catch(e){return null;}}).filter(Boolean);
-  const choice=prompt('Saved gigs:\n'+list.map((g,i)=>`${i+1}. ${g.date} — ${g.name}`).join('\n')+'\n\nEnter number:');
+  const choice=prompt('Saved gigs:\n'+list.map((g,i)=>`${i+1}. ${g.date} -- ${g.name}`).join('\n')+'\n\nEnter number:');
   if(!choice) return;
   const idx=parseInt(choice)-1;
   if(isNaN(idx)||!list[idx]) return;
@@ -1590,17 +1590,17 @@ function loadGig(){
   renderRunsheet(); renderLibrary(); updatePrintHeader();
   document.getElementById('encore-bar').style.display='block';
   document.getElementById('showflow-bar').style.display='block';
-  setStatus(`✓ Loaded: ${gig.name}`);
+  setStatus(`v Loaded: ${gig.name}`);
 }
 
-// ── PRINT HEADER ──
+// -- PRINT HEADER --
 function updatePrintHeader(){
   const name=document.getElementById('gig-name').value;
   const date=document.getElementById('gig-date').value;
   const loc=document.getElementById('gig-location').value;
   const prod=document.getElementById('gig-producer').value;
   document.getElementById('ph-title').textContent=(date?date+'  ':'')+( name||'Setlist');
-  document.getElementById('ph-meta').textContent=[loc,prod?'Producer: '+prod:''].filter(Boolean).join('  ·  ');
+  document.getElementById('ph-meta').textContent=[loc,prod?'Producer: '+prod:''].filter(Boolean).join('  .  ');
   const checked=[...document.querySelectorAll('#body-2 input[type=checkbox]:checked')].map(c=>c.value);
   const singers=checked.filter(v=>['Maya R','Rettig','Tue','Patterson','Melinda R'].includes(v));
   const rhythm=[...checked.filter(v=>['Waltemire','Leader','Roberts','Romero','Chin','Pers'].includes(v))];
@@ -1612,7 +1612,7 @@ function updatePrintHeader(){
   document.getElementById('ph-personnel').innerHTML=p;
 }
 
-// ── EXPORT CSV ──
+// -- EXPORT CSV --
 function exportCSV(){
   const songs=runsheet.filter(r=>r.type==='song');
   if(!songs.length){alert('No songs to export.'); return;}
