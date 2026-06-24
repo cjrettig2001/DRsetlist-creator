@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>DR Setlist Creator</title>
+  <title>Downrange Setlist Creator</title>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <style>
     :root {
@@ -15,12 +15,11 @@
     body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;min-height:100vh;}
 
     /* HEADER */
-    header{border-bottom:1px solid var(--border);padding:8px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
-    header h1{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--accent);white-space:nowrap;}
+    header{border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+    header h1{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--accent);white-space:nowrap;}
+    .hdr-sub{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:0.5px;}
     .hdr-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
-    #sheet-url{background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 8px;outline:none;width:280px;}
-    #sheet-url:focus{border-color:var(--accent);}
-    #status{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;white-space:normal;max-width:200px;}
+    #status{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
 
     /* BUTTONS */
     .btn{border:none;border-radius:4px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.1s;}
@@ -29,42 +28,31 @@
     .btn-outline{background:none;border:1px solid var(--border);color:var(--muted);}
     .btn-outline:hover{border-color:var(--accent);color:var(--accent);}
     .btn-green{background:var(--green);color:#0e0e10;border:none;border-radius:4px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;}
-    .btn-ai{background:var(--ai);color:white;border:none;border-radius:4px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;}
-    .btn-ai:hover{background:#9585f8;}
 
-    /* LAYOUT - responsive */
-    /* Desktop: 3 columns */
-    @media (min-width: 768px) {
+    /* RESPONSIVE LAYOUT */
+    @media (min-width:768px){
       .app{display:grid;grid-template-columns:300px 1fr 380px;height:calc(100vh - 49px);}
-      .tab-bar{display:none;}
+      .tab-bar{display:none!important;}
       .tab-panel{display:flex!important;flex-direction:column;overflow:hidden;}
-      .tab-panel.active{display:flex;}
       .gig-panel{border-right:1px solid var(--border);overflow-y:auto;}
       .library{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
       .runsheet-panel{display:flex;flex-direction:column;overflow:hidden;}
       .gig-panel::-webkit-scrollbar{width:4px;}
       .gig-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
     }
-
-    /* Mobile: tabs */
-    @media (max-width: 767px) {
+    @media (max-width:767px){
       .app{display:flex;flex-direction:column;height:calc(100vh - 49px);}
       .tab-bar{display:flex;border-bottom:2px solid var(--border);background:var(--surface);flex-shrink:0;}
       .tab-panel{display:none;flex:1;overflow-y:auto;}
       .tab-panel.active{display:flex;flex-direction:column;}
-      .tab-panel::-webkit-scrollbar{width:4px;}
-      .tab-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
     }
 
-    /* TAB BAR (mobile only) */
+    /* TAB BAR */
     .tab-bar{display:none;}
     .tab-btn{flex:1;padding:10px 4px;font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--muted);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;}
     .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
 
-    /* ── LEFT: WIZARD ── */
-    .gig-panel{display:flex;flex-direction:column;}
-
-
+    /* WIZARD */
     .wizard-step{border-bottom:1px solid var(--border);}
     .wizard-step.locked{opacity:0.45;pointer-events:none;}
     .step-header{display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;transition:background 0.1s;user-select:none;}
@@ -76,23 +64,26 @@
     .step-check{color:var(--green);font-size:12px;font-weight:700;}
     .step-body{padding:4px 14px 12px;display:flex;flex-direction:column;gap:0;}
 
-    label.field-label{display:block;font-size:10px;color:var(--muted);margin-bottom:3px;margin-top:9px;text-transform:uppercase;letter-spacing:0.5px;}
-    .step-body input[type=text],.step-body textarea,.step-body select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:16px;padding:8px 10px;outline:none;font-family:'Inter',sans-serif;} @media(min-width:768px){.step-body input[type=text],.step-body textarea,.step-body select{font-size:13px;padding:6px 8px;}}
+    .field-label{display:block;font-size:10px;color:var(--muted);margin-bottom:3px;margin-top:9px;text-transform:uppercase;letter-spacing:0.5px;}
+    .step-body input[type=text],.step-body textarea,.step-body select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:14px;padding:7px 9px;outline:none;font-family:'Inter',sans-serif;}
+    @media(min-width:768px){.step-body input[type=text],.step-body textarea,.step-body select{font-size:12px;padding:6px 8px;}}
     .step-body input:focus,.step-body textarea:focus{border-color:var(--accent);}
     .step-body textarea{resize:vertical;min-height:55px;line-height:1.5;}
 
     /* PERSONNEL */
     .person-grid{display:flex;flex-direction:column;gap:4px;margin-top:4px;}
-    .person-check{display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer;padding:10px 12px;border-radius:4px;border:1px solid var(--border);transition:all 0.1s;} @media(min-width:768px){.person-check{font-size:12px;padding:6px 8px;}}
+    .person-check{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px 10px;border-radius:4px;border:1px solid var(--border);transition:all 0.1s;}
+    @media(min-width:768px){.person-check{font-size:12px;padding:5px 8px;}}
     .person-check:hover{border-color:var(--accent);background:var(--accent-dim);}
     .person-check.on{border-color:var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:500;}
-    .person-check input{accent-color:var(--accent);width:13px;height:13px;cursor:pointer;}
+    .person-check input{accent-color:var(--accent);width:14px;height:14px;cursor:pointer;}
     .person-summary{margin-top:8px;padding:7px 9px;background:var(--surface2);border-radius:4px;font-size:11px;color:var(--muted);line-height:1.7;border:1px solid var(--border);}
     .cut-warn{color:var(--accent);font-weight:600;}
 
     /* TAGS */
     .tag-grid{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
-    .tag{padding:7px 12px;border-radius:3px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:none;transition:all 0.15s;} @media(min-width:768px){.tag{padding:4px 9px;font-size:11px;}}
+    .tag{padding:6px 11px;border-radius:3px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:none;transition:all 0.15s;}
+    @media(min-width:768px){.tag{padding:4px 9px;font-size:11px;}}
     .tag:hover{border-color:var(--accent);color:var(--accent);}
     .tag.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
 
@@ -104,52 +95,49 @@
     .add-set-btn{font-size:11px;color:var(--accent);background:none;border:1px dashed var(--border);border-radius:4px;padding:4px;width:100%;cursor:pointer;margin-top:4px;transition:all 0.1s;}
     .add-set-btn:hover{border-color:var(--accent);}
 
-    /* WIZARD NAV */
     .wizard-next{margin-top:10px;width:100%;background:var(--accent);border:none;color:#0e0e10;border-radius:4px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;}
     .wizard-next:hover{background:#ffd060;}
     .build-btn{margin-top:8px;width:100%;background:var(--ai);border:none;color:white;border-radius:4px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;}
     .build-btn:hover{background:#9585f8;}
 
-    /* ── MIDDLE: LIBRARY ── */
-    .library{display:flex;flex-direction:column;flex:1;overflow:hidden;}
+    /* LIBRARY */
     .lib-header{padding:9px 12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px;}
     .lib-title{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1.2px;color:var(--muted);}
+    .lib-title-row{display:flex;align-items:center;justify-content:space-between;}
     .filters{display:flex;gap:4px;flex-wrap:wrap;}
     .filters input,.filters select{background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;padding:4px 7px;outline:none;font-family:'Inter',sans-serif;flex:1;min-width:80px;}
     .filters input:focus,.filters select:focus{border-color:var(--accent);}
 
-    .col-headers{display:grid;grid-template-columns:1fr 45px 55px 35px;padding:4px 11px;gap:5px;background:var(--surface);border-bottom:1px solid var(--border);}
-    @media (min-width:768px){.col-headers{grid-template-columns:1fr 55px 65px 85px 60px 45px 28px;}}
+    .col-headers{display:grid;grid-template-columns:1fr 45px 55px 30px;padding:4px 11px;gap:5px;background:var(--surface);border-bottom:1px solid var(--border);}
+    @media(min-width:768px){.col-headers{grid-template-columns:1fr 50px 60px 80px 55px 42px 26px;}}
     .col-headers span{font-size:9px;font-weight:600;letter-spacing:0.7px;text-transform:uppercase;color:var(--muted);}
 
     .song-list{flex:1;overflow-y:auto;}
     .song-list::-webkit-scrollbar{width:4px;}
     .song-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
-    .song-row{display:grid;grid-template-columns:1fr 45px 55px 35px;align-items:center;padding:8px 11px;border-bottom:1px solid var(--border);gap:5px;transition:background 0.1s;}
-    @media (min-width:768px){.song-row{grid-template-columns:1fr 55px 65px 85px 60px 45px 28px;padding:6px 11px;}}
+    .song-row{display:grid;grid-template-columns:1fr 45px 55px 30px;align-items:center;padding:8px 11px;border-bottom:1px solid var(--border);gap:5px;transition:background 0.1s;}
+    @media(min-width:768px){.song-row{grid-template-columns:1fr 50px 60px 80px 55px 42px 26px;padding:6px 11px;}}
     .song-row:hover{background:var(--surface);}
-    .song-row .title{font-weight:500;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .song-row .meta{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .song-title{font-weight:500;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .song-sub{font-size:10px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .meta{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .genre-badge{display:inline-block;font-size:9px;font-weight:600;padding:1px 4px;border-radius:2px;background:var(--accent-dim);color:var(--accent);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
     .hist-badge{font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace;padding:2px 4px;border-radius:2px;background:rgba(76,175,130,0.15);color:var(--green);white-space:nowrap;}
-    .hist-badge.new{background:rgba(124,106,247,0.15);color:var(--ai);}
-    .add-btn{background:none;border:1px solid var(--border);border-radius:3px;color:var(--muted);cursor:pointer;width:32px;height:32px;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all 0.1s;flex-shrink:0;} @media(min-width:768px){.add-btn{width:22px;height:22px;font-size:15px;}}
+    .hist-badge.new-song{background:rgba(124,106,247,0.15);color:var(--ai);}
+    .add-btn{background:none;border:1px solid var(--border);border-radius:3px;color:var(--muted);cursor:pointer;width:26px;height:26px;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all 0.1s;flex-shrink:0;}
+    @media(min-width:768px){.add-btn{width:20px;height:20px;font-size:14px;}}
     .add-btn:hover{background:var(--accent);color:#0e0e10;border-color:var(--accent);}
-    .empty-msg{padding:24px 14px;text-align:center;color:var(--muted);font-size:12px;}
+    .empty-msg{padding:24px 14px;text-align:center;color:var(--muted);font-size:12px;line-height:1.7;}
 
-    /* ── RIGHT: RUNSHEET ── */
-    .runsheet-panel{display:flex;flex-direction:column;flex:1;overflow:hidden;}
+    /* RUNSHEET */
+    .runsheet-panel{display:flex;flex-direction:column;overflow:hidden;}
     .rs-header{padding:9px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;}
     .rs-title-wrap{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0;}
     #runsheet-name{background:none;border:none;color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;outline:none;width:100%;}
     #runsheet-name::placeholder{color:var(--muted);}
     .rs-meta{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
     .rs-actions{display:flex;gap:4px;flex-shrink:0;flex-wrap:wrap;}
-
-    /* SHOW FLOW BAR */
-    .showflow-bar{display:none;padding:7px 13px;border-bottom:1px solid var(--border);gap:5px;display:none;flex-direction:row;}
-    .ai-spinner{display:none;font-size:11px;color:var(--ai);font-style:italic;text-align:center;padding:4px;}
 
     /* ENCORE BAR */
     .encore-bar{display:none;border-bottom:1px solid var(--border);background:var(--surface);padding:7px 13px;}
@@ -160,7 +148,6 @@
     .encore-opt:hover{border-color:var(--accent);background:var(--accent-dim);}
     .encore-opt.selected{border-color:var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:600;}
     .enc-singer{font-size:9px;color:var(--muted);}
-    .encore-opt.selected .enc-singer{color:var(--accent);}
 
     /* RUNSHEET BODY */
     .rs-body{flex:1;overflow-y:auto;padding:4px 0;}
@@ -172,7 +159,7 @@
     .set-block-meta{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
 
     .run-item{border-bottom:1px solid var(--border);}
-    .run-song{display:grid;grid-template-columns:22px 1fr auto;align-items:start;padding:7px 13px 3px;gap:8px;cursor:grab;transition:background 0.1s;}
+    .run-song{display:grid;grid-template-columns:22px 1fr auto;align-items:start;padding:8px 13px 4px;gap:8px;cursor:grab;transition:background 0.1s;}
     .run-song:hover{background:var(--surface);}
     .run-song:active{cursor:grabbing;}
     .run-song.drag-over{border-top:2px solid var(--accent);}
@@ -185,27 +172,22 @@
 
     /* SINGER ASSIGN */
     .singer-assign{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px;}
-    .singer-btn{font-size:11px;padding:5px 9px;border-radius:3px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;transition:all 0.1s;}
+    .singer-btn{font-size:10px;padding:3px 8px;border-radius:2px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;transition:all 0.1s;}
     .singer-btn:hover{border-color:var(--accent);color:var(--accent);}
     .singer-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);font-weight:600;}
-    .primary-tag{font-size:9px;padding:1px 5px;border-radius:2px;background:rgba(76,175,130,0.15);color:var(--green);font-weight:700;margin-left:3px;}
 
     /* KEY LOCK */
-    .key-lock{display:inline-flex;align-items:center;gap:4px;margin-left:4px;}
-    .key-lock select{background:var(--surface2);border:1px solid var(--border);border-radius:3px;color:var(--accent);font-size:10px;padding:1px 4px;outline:none;cursor:pointer;font-family:'JetBrains Mono',monospace;}
-    .key-lock select.needs-lock{border-color:var(--danger);color:var(--danger);animation:pulse 1.5s infinite;}
+    .key-sel{background:var(--surface2);border:1px solid var(--danger);border-radius:3px;color:var(--danger);font-size:10px;padding:1px 4px;outline:none;cursor:pointer;font-family:'JetBrains Mono',monospace;animation:pulse 1.5s infinite;}
     @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
 
     /* FLOW NOTE */
     .flow-note{padding:3px 13px 7px 43px;}
     .flow-note textarea{width:100%;background:transparent;border:none;border-left:2px solid var(--border);color:var(--muted);font-size:11px;font-family:'Inter',sans-serif;padding:3px 7px;outline:none;resize:none;line-height:1.5;min-height:28px;transition:border-color 0.1s;}
     .flow-note textarea:focus{border-color:var(--ai);color:var(--text);background:var(--surface2);}
-    .flow-note textarea.ai-gen{border-color:var(--ai);color:#a89cf7;font-style:italic;}
 
     /* BREAK */
     .break-block{padding:6px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--surface2);}
     .break-label{font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:1px;color:var(--muted);}
-    .break-mins{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
 
     .empty-rs{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:var(--muted);}
     .empty-rs .icon{font-size:30px;opacity:0.2;}
@@ -213,10 +195,10 @@
 
     /* PRINT */
     #print-header{display:none;}
-    @media print {
+    @media print{
       header,#sheet-bar,.library,.gig-panel,.rs-actions,
-      .run-remove,.encore-bar .btn,.showflow-bar,
-      .singer-assign,.flow-note,.key-lock,#showflow-bar{display:none!important;}
+      .run-remove,.encore-bar .btn,.singer-assign,
+      .flow-note,.key-sel,.tab-bar{display:none!important;}
       body{background:white;color:black;font-family:Arial,sans-serif;font-size:11pt;}
       .app{display:block;height:auto;}
       .runsheet-panel{display:block;overflow:visible;}
@@ -229,7 +211,7 @@
       .set-block-title{font-size:13pt;font-weight:bold;color:black;}
       .set-block-meta{display:none;}
       .run-item{border:none;page-break-inside:avoid;}
-      .run-song{padding:2px 0;cursor:default;background:none!important;border:none;}
+      .run-song{padding:2px 0;cursor:default;background:none!important;border:none;display:grid;grid-template-columns:22px 1fr;}
       .run-num{color:black;font-family:Arial;}
       .run-title{font-weight:bold;font-size:11pt;}
       .run-detail{color:#444;}
@@ -247,38 +229,33 @@
 <div id="print-header">
   <div id="ph-title" style="font-size:16pt;font-weight:bold;margin-bottom:4px"></div>
   <div id="ph-meta" style="font-size:10pt;color:#444;margin-bottom:8px"></div>
-  <div id="ph-personnel" style="font-size:10pt;line-height:2"></div>
+  <div id="ph-personnel" style="font-size:10pt;line-height:2;border-bottom:2px solid black;padding-bottom:8px;margin-bottom:8px"></div>
 </div>
 
 <header>
-  <h1>DR Setlist Creator</h1>
-  <div class="hdr-right">
-    <input type="file" id="file-input" accept=".csv,.xlsx,.xls" onchange="loadCSVFile(this)" style="display:none"/>
-    <button class="btn btn-accent" style="font-size:13px" onclick="document.getElementById('file-input').click()">📂 Load Songs (CSV or XLSX)</button>
-    <button class="btn btn-outline" onclick="document.getElementById('url-row').style.display=document.getElementById('url-row').style.display==='none'?'flex':'none'">URL ▾</button>
-    <span id="status">Sheet loads automatically — or use CSV/XLSX button to override</span>
+  <div>
+    <h1>Downrange Setlist Creator</h1>
+    <div class="hdr-sub">US Army Band &quot;Pershing&apos;s Own&quot;</div>
   </div>
-  <div id="url-row" style="display:none;align-items:center;gap:6px;padding:6px 20px;background:var(--surface);border-bottom:1px solid var(--border)">
-    <input id="sheet-url" type="text" placeholder="Google Sheet published CSV URL…" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 8px;outline:none"
-      value="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ94KIxEH-9Gssi6ZRaNqBJp91G4hsgyMVhpST68IhN27Daly4UR31xGLYcWOYSL_Ba3wCXeOYvRDor/pub?output=csv"/>
-    <button class="btn btn-outline" onclick="loadSheet()">Try URL</button>
+  <div class="hdr-right">
+    <input type="file" id="file-input" accept=".csv,.xlsx,.xls" onchange="loadFile(this)" style="display:none"/>
+    <button class="btn btn-accent" onclick="document.getElementById('file-input').click()">Load Songs (CSV / XLSX)</button>
+    <span id="status">Loading sheet...</span>
   </div>
 </header>
 
 <div class="app">
 
-  <!-- TAB BAR -->
   <div class="tab-bar">
-    <button class="tab-btn active" onclick="showTab('gig')">⚙ Gig</button>
-    <button class="tab-btn" onclick="showTab('library')">🎵 Songs</button>
-    <button class="tab-btn" onclick="showTab('runsheet')">📋 Setlist</button>
+    <button class="tab-btn active" onclick="showTab('gig')">Gig</button>
+    <button class="tab-btn" onclick="showTab('library')">Songs</button>
+    <button class="tab-btn" onclick="showTab('runsheet')">Setlist</button>
   </div>
 
-  <!-- TAB: GIG SETUP -->
+  <!-- GIG PANEL -->
   <div class="tab-panel active" id="tab-gig">
   <div class="gig-panel">
 
-    <!-- STEP 1 -->
     <div class="wizard-step" id="step-1">
       <div class="step-header" onclick="toggleStep(1)">
         <span class="step-num">1</span>
@@ -287,22 +264,21 @@
       </div>
       <div class="step-body" id="body-1">
         <label class="field-label">Event Name</label>
-        <input type="text" id="gig-name" placeholder="e.g. Fort Myer Military Ball" oninput="updatePrintHeader()"/>
+        <input type="text" id="gig-name" placeholder="e.g. Army Birthday Concert" oninput="updatePrintHeader()"/>
         <label class="field-label">Date</label>
-        <input type="text" id="gig-date" placeholder="e.g. Nov 8, 2025" oninput="updatePrintHeader()"/>
+        <input type="text" id="gig-date" placeholder="e.g. Jun 14, 2026" oninput="updatePrintHeader()"/>
         <label class="field-label">Location / Venue</label>
-        <input type="text" id="gig-location" placeholder="e.g. Fort Myer, Arlington VA" oninput="updatePrintHeader();renderLibrary()"/>
+        <input type="text" id="gig-location" placeholder="e.g. Summerall Field, Fort Myer" oninput="updatePrintHeader();renderLibrary()"/>
         <label class="field-label">Producer</label>
         <input type="text" id="gig-producer" placeholder="e.g. Pride" oninput="updatePrintHeader()"/>
-        <button class="wizard-next" onclick="openStep(2)">Next → Who's Playing</button>
+        <button class="wizard-next" onclick="openStep(2)">Next: Who&apos;s Playing</button>
       </div>
     </div>
 
-    <!-- STEP 2 -->
     <div class="wizard-step locked" id="step-2">
       <div class="step-header" onclick="toggleStep(2)">
         <span class="step-num">2</span>
-        <span class="step-title">Who's Playing</span>
+        <span class="step-title">Who&apos;s Playing</span>
         <span class="step-check" id="chk-2"></span>
       </div>
       <div class="step-body" id="body-2" style="display:none">
@@ -331,46 +307,36 @@
         </div>
         <label class="field-label" style="margin-top:10px">Horns</label>
         <div class="tag-grid">
-          <button class="tag active" onclick="toggleExcl(this,'horns-grp');bandConfig.horns='full';renderLibrary()">Full Horns</button>
-          <button class="tag" onclick="toggleExcl(this,'horns-grp');bandConfig.horns='none';renderLibrary()">No Horns</button>
+          <button class="tag active" onclick="toggleExcl(this);bandConfig.horns='full';renderLibrary()">Full Horns</button>
+          <button class="tag" onclick="toggleExcl(this);bandConfig.horns='none';renderLibrary()">No Horns</button>
         </div>
         <div id="personnel-summary" class="person-summary" style="margin-top:8px">Select personnel above</div>
-        <button class="wizard-next" onclick="openStep(3)">Next → Gig Type</button>
+        <button class="wizard-next" onclick="openStep(3)">Next: Gig Type</button>
       </div>
     </div>
 
-    <!-- STEP 3 -->
     <div class="wizard-step locked" id="step-3">
       <div class="step-header" onclick="toggleStep(3)">
         <span class="step-num">3</span>
-        <span class="step-title">Gig Type & Audience</span>
+        <span class="step-title">Gig Type &amp; Audience</span>
         <span class="step-check" id="chk-3"></span>
       </div>
       <div class="step-body" id="body-3" style="display:none">
         <label class="field-label">Event Type</label>
         <div class="tag-grid" id="event-type-tags">
           <button class="tag" onclick="toggleTag(this);renderLibrary()">Military Ball</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Outdoor Concert</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Festival</button>
           <button class="tag" onclick="toggleTag(this);renderLibrary()">Ceremony</button>
-          <button class="tag" onclick="toggleTag(this);renderLibrary()">Corporate</button>
-          <button class="tag" onclick="toggleTag(this);renderLibrary()">Wedding</button>
-          <button class="tag" onclick="toggleTag(this);renderLibrary()">Private Party</button>
-          <button class="tag" onclick="toggleTag(this);renderLibrary()">Concert</button>
-          <button class="tag" onclick="toggleTag(this);renderLibrary()">Outdoor Festival</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Community Event</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Kids Performance</button>
         </div>
-        <label class="field-label">Political / Cultural Climate</label>
+        <label class="field-label">Audience</label>
         <div class="tag-grid" id="climate-tags">
-          <button class="tag" onclick="toggleTag(this);renderLibrary()">Conservative</button>
-          <button class="tag" onclick="toggleTag(this);renderLibrary()">Liberal</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Military / Veterans</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">General Public</button>
           <button class="tag" onclick="toggleTag(this);renderLibrary()">Mixed</button>
-          <button class="tag" onclick="toggleTag(this);renderLibrary()">Patriotic</button>
-          <button class="tag" onclick="toggleTag(this);renderLibrary()">Diverse</button>
-        </div>
-        <label class="field-label">Age Range</label>
-        <div class="tag-grid" id="age-tags">
-          <button class="tag" onclick="toggleTag(this);renderLibrary()">All Ages</button>
-          <button class="tag" onclick="toggleTag(this);renderLibrary()">Young Adults</button>
-          <button class="tag" onclick="toggleTag(this);renderLibrary()">30s–50s</button>
-          <button class="tag" onclick="toggleTag(this);renderLibrary()">Older Crowd</button>
+          <button class="tag" onclick="toggleTag(this);renderLibrary()">Families</button>
         </div>
         <label class="field-label">Energy Level</label>
         <div class="tag-grid" id="energy-tags">
@@ -379,12 +345,11 @@
           <button class="tag" onclick="toggleTag(this);renderLibrary()">Dinner / Chill</button>
         </div>
         <label class="field-label">Additional Context</label>
-        <textarea id="gig-notes" placeholder="e.g. Medal ceremony at 9pm, seated for first set, general wants country…" oninput="renderLibrary()"></textarea>
-        <button class="wizard-next" onclick="openStep(4)">Next → Set Structure</button>
+        <textarea id="gig-notes" placeholder="e.g. Army Birthday -- June 14, lots of brass, general attending, patriotic feel..." oninput="renderLibrary()"></textarea>
+        <button class="wizard-next" onclick="openStep(4)">Next: Set Structure</button>
       </div>
     </div>
 
-    <!-- STEP 4 -->
     <div class="wizard-step locked" id="step-4">
       <div class="step-header" onclick="toggleStep(4)">
         <span class="step-num">4</span>
@@ -394,20 +359,23 @@
       <div class="step-body" id="body-4" style="display:none">
         <div id="sets-list"></div>
         <button class="add-set-btn" onclick="addSet()">+ Add Set</button>
-        <button class="build-btn" onclick="buildSetlist()">✦ BUILD SETLIST</button>
+        <button class="build-btn" onclick="buildSetlist()">BUILD SETLIST</button>
       </div>
     </div>
 
   </div>
-  </div><!-- /tab-gig -->
+  </div>
 
-  <!-- TAB: LIBRARY -->
+  <!-- LIBRARY PANEL -->
   <div class="tab-panel" id="tab-library">
   <div class="library">
     <div class="lib-header">
-      <div style="display:flex;align-items:center;justify-content:space-between"><span class="lib-title">Song Library — <span id="song-total">—</span></span><button class="btn btn-outline" style="font-size:10px;padding:3px 8px" onclick="showTab('runsheet')">View Setlist →</button></div>
+      <div class="lib-title-row">
+        <span class="lib-title">Song Library -- <span id="song-total">--</span></span>
+        <button class="btn btn-outline" style="font-size:10px;padding:3px 8px" onclick="showTab('runsheet')">View Setlist</button>
+      </div>
       <div class="filters">
-        <input id="search" type="text" placeholder="Search…" oninput="renderLibrary()"/>
+        <input id="search" type="text" placeholder="Search..." oninput="renderLibrary()"/>
         <select id="filter-singer" onchange="renderLibrary()">
           <option value="">All Singers</option>
           <option>Maya R</option><option>Rettig</option><option>Tue</option>
@@ -423,7 +391,6 @@
           <option value="Original">Originals</option>
           <option value="Patriotic">Patriotic</option>
           <option value="Acoustic">Acoustic</option>
-          <option value="Wedding Band Vibes">Wedding Vibes</option>
           <option value="cut_safe">Cut-Down Safe</option>
         </select>
         <select id="filter-genre" onchange="renderLibrary()">
@@ -432,15 +399,21 @@
       </div>
     </div>
     <div class="col-headers">
-      <span>Title</span><span>Key</span><span id="col-artist" style="display:none">Artist</span><span>Genre</span><span id="col-hist" style="display:none">Hist</span><span></span>
+      <span>Title</span>
+      <span>Key</span>
+      <span>Genre</span>
+      <span id="col-artist" style="display:none">Artist</span>
+      <span id="col-hist" style="display:none">Hist</span>
+      <span id="col-cat" style="display:none">Cat#</span>
+      <span></span>
     </div>
     <div class="song-list" id="song-list">
-      <div class="empty-msg">Load your CSV to get started.</div>
+      <div class="empty-msg">Loading your sheet...<br>If this persists, click &quot;Load Songs&quot; to load from file.</div>
     </div>
   </div>
-  </div><!-- /tab-library -->
+  </div>
 
-  <!-- TAB: RUNSHEET -->
+  <!-- RUNSHEET PANEL -->
   <div class="tab-panel" id="tab-runsheet">
   <div class="runsheet-panel">
     <div class="rs-header">
@@ -456,23 +429,19 @@
         <button class="btn btn-accent" onclick="updatePrintHeader();window.print()">Print</button>
       </div>
     </div>
-    <div id="showflow-bar" style="display:none;padding:6px 13px;border-bottom:1px solid var(--border);display:none">
-      <button class="btn btn-ai" style="width:100%;padding:6px;font-size:12px" onclick="generateShowFlow()">✦ Generate Show Flow Notes</button>
-      <div class="ai-spinner" id="ai-spinner"></div>
-    </div>
     <div class="encore-bar" id="encore-bar">
       <div class="encore-header">
         <span class="encore-label">Encore</span>
         <button class="btn btn-outline" style="font-size:10px;padding:3px 8px" onclick="suggestEncores()">Suggest</button>
         <button class="btn btn-outline" style="font-size:10px;padding:3px 8px" onclick="clearEncore()">Clear</button>
       </div>
-      <div class="encore-slot" id="encore-slot">Click Suggest after building setlist</div>
+      <div class="encore-slot" id="encore-slot">Build your setlist first, then click Suggest</div>
     </div>
     <div class="rs-body" id="rs-body">
-      <div class="empty-rs"><div class="icon">🎵</div><p>Complete the wizard to build your setlist</p></div>
+      <div class="empty-rs"><div class="icon">DR</div><p>Complete the wizard to build your setlist</p></div>
     </div>
   </div>
-  </div><!-- /tab-runsheet -->
+  </div>
 
 </div>
 
@@ -480,13 +449,13 @@
 const SONG_KB = {"Shining Star":{"play_count":11,"cut_guitar_count":4,"full_guitar_count":7,"with_horns_count":2,"without_horns_count":9,"singers":{"Tue":6,"Rettig":3},"gig_types":[],"primary_singer":"Tue","singer_pct":71,"all_singers":{"Rettig":2,"Tue":5},"avg_position":0.29,"historical_role":"MID"},"About That Time":{"play_count":24,"cut_guitar_count":11,"full_guitar_count":13,"with_horns_count":6,"without_horns_count":18,"singers":{"Rodriguez":7,"Patterson":10},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":11},"avg_position":0.26,"historical_role":"MID"},"Good to be Alive":{"play_count":3,"cut_guitar_count":1,"full_guitar_count":2,"with_horns_count":0,"without_horns_count":3,"singers":{"Rettig":3},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1}},"If I Ain\u2019t Got You":{"play_count":10,"cut_guitar_count":4,"full_guitar_count":6,"with_horns_count":2,"without_horns_count":8,"singers":{"Tue":8},"gig_types":[],"primary_singer":"Tue","singer_pct":67,"all_singers":{"Tue":2,"Rettig":1},"avg_position":0.44,"historical_role":"MID"},"My Church":{"play_count":6,"cut_guitar_count":4,"full_guitar_count":2,"with_horns_count":0,"without_horns_count":6,"singers":{"Rodriguez":5},"gig_types":[],"primary_singer":"Maya R","singer_pct":100,"all_singers":{"Maya R":2},"avg_position":0.58,"historical_role":"MID"},"Rosanna":{"play_count":10,"cut_guitar_count":2,"full_guitar_count":8,"with_horns_count":2,"without_horns_count":8,"singers":{"Rettig":7},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":4},"avg_position":0.34,"historical_role":"MID"},"Ordinary People":{"play_count":8,"cut_guitar_count":4,"full_guitar_count":4,"with_horns_count":0,"without_horns_count":8,"singers":{"Tue":8},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":1},"avg_position":0.48,"historical_role":"MID"},"Separate Ways":{"play_count":19,"cut_guitar_count":4,"full_guitar_count":15,"with_horns_count":6,"without_horns_count":13,"singers":{"Rodriguez":6,"Patterson":12},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":12},"avg_position":0.4,"historical_role":"MID"},"My Hero":{"play_count":9,"cut_guitar_count":3,"full_guitar_count":6,"with_horns_count":4,"without_horns_count":5,"singers":{"Rettig":8},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":6},"avg_position":0.58,"historical_role":"MID"},"That\u2019s the Way of the World":{"play_count":5,"cut_guitar_count":1,"full_guitar_count":4,"with_horns_count":0,"without_horns_count":5,"singers":{"Rettig":2,"Tue":1},"gig_types":[],"primary_singer":null,"singer_pct":50,"all_singers":{"Tue":2,"Maya R":1,"Rettig":1},"avg_position":0.51,"historical_role":"MID"},"Listen to the Music":{"play_count":9,"cut_guitar_count":5,"full_guitar_count":4,"with_horns_count":0,"without_horns_count":9,"singers":{"Rettig":5},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1},"avg_position":0.0,"historical_role":"OPENER"},"Cruel Summer":{"play_count":18,"cut_guitar_count":6,"full_guitar_count":12,"with_horns_count":3,"without_horns_count":15,"singers":{"Rodriguez":15},"gig_types":[],"primary_singer":"Rodriguez","singer_pct":75,"all_singers":{"Rodriguez":6,"Maya R":2},"avg_position":0.41,"historical_role":"MID"},"Brown Eyed Lover":{"play_count":5,"cut_guitar_count":2,"full_guitar_count":3,"with_horns_count":2,"without_horns_count":3,"singers":{"Tue":3},"gig_types":[],"primary_singer":null,"singer_pct":50,"all_singers":{"Tue":1,"Rettig":1},"avg_position":0.43,"historical_role":"MID"},"I Can\u2019t Go For That":{"play_count":10,"cut_guitar_count":2,"full_guitar_count":8,"with_horns_count":5,"without_horns_count":5,"singers":{"Rettig":5},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":7},"avg_position":0.52,"historical_role":"MID"},"All-American Girl":{"play_count":8,"cut_guitar_count":1,"full_guitar_count":7,"with_horns_count":1,"without_horns_count":7,"singers":{"Rodriguez":7},"gig_types":[],"primary_singer":"Maya R","singer_pct":100,"all_singers":{"Maya R":2},"avg_position":0.38,"historical_role":"MID"},"Overjoyed":{"play_count":10,"cut_guitar_count":6,"full_guitar_count":4,"with_horns_count":1,"without_horns_count":9,"singers":{"Tue":9},"gig_types":[],"primary_singer":"Tue","singer_pct":60,"all_singers":{"Tue":3,"Rettig":1,"Rodriguez":1},"avg_position":0.37,"historical_role":"MID"},"As It Was":{"play_count":17,"cut_guitar_count":9,"full_guitar_count":8,"with_horns_count":5,"without_horns_count":12,"singers":{"Rettig":17},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":8},"avg_position":0.45,"historical_role":"MID"},"Rolling in the Deep":{"play_count":5,"cut_guitar_count":2,"full_guitar_count":3,"with_horns_count":0,"without_horns_count":5,"singers":{"Rodriguez":4},"gig_types":[],"primary_singer":"Maya R","singer_pct":100,"all_singers":{"Maya R":1},"avg_position":0.17,"historical_role":"OPENER"},"Signed Sealed":{"play_count":6,"cut_guitar_count":3,"full_guitar_count":3,"with_horns_count":0,"without_horns_count":6,"singers":{"Tue":6},"gig_types":[],"avg_position":0.86,"historical_role":"CLOSER"},"Living in America":{"play_count":13,"cut_guitar_count":6,"full_guitar_count":7,"with_horns_count":2,"without_horns_count":11,"singers":{"Rettig":9},"gig_types":[],"primary_singer":"Rettig","singer_pct":67,"all_singers":{"Rettig":2,"Tue":1},"avg_position":0.96,"historical_role":"CLOSER"},"Acoustic":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Change the World":{"play_count":5,"cut_guitar_count":2,"full_guitar_count":3,"with_horns_count":1,"without_horns_count":4,"singers":{"Rettig":5},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1},"avg_position":0.56,"historical_role":"MID"},"Home":{"play_count":6,"cut_guitar_count":2,"full_guitar_count":4,"with_horns_count":1,"without_horns_count":5,"singers":{"Rodriguez":3},"gig_types":[],"avg_position":0.55,"historical_role":"MID"},"Your Song":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{"Rettig":1},"gig_types":[]},"Skate":{"play_count":21,"cut_guitar_count":13,"full_guitar_count":8,"with_horns_count":2,"without_horns_count":19,"singers":{"Tue":18},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":15},"avg_position":0.29,"historical_role":"MID"},"I Wish":{"play_count":5,"cut_guitar_count":5,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":5,"singers":{"Rodriguez":2,"Rettig":2,"Patterson":1},"gig_types":[],"primary_singer":"Maya R","singer_pct":67,"all_singers":{"Maya R":2,"Rettig":1},"avg_position":0.28,"historical_role":"MID"},"Higher Ground":{"play_count":8,"cut_guitar_count":7,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":8,"singers":{"Rodriguez":6,"Rettig":1},"gig_types":[],"primary_singer":"Maya R","singer_pct":100,"all_singers":{"Maya R":2},"avg_position":0.57,"historical_role":"MID"},"Let\u2019s Groove":{"play_count":6,"cut_guitar_count":3,"full_guitar_count":3,"with_horns_count":0,"without_horns_count":6,"singers":{"Tue":3,"Rettig":2},"gig_types":[],"primary_singer":null,"singer_pct":43,"all_singers":{"Tue":3,"Maya R":2,"Rettig":2},"avg_position":0.78,"historical_role":"CLOSER"},"So American":{"play_count":9,"cut_guitar_count":4,"full_guitar_count":5,"with_horns_count":1,"without_horns_count":8,"singers":{"Rodriguez":8},"gig_types":[],"primary_singer":"Rodriguez","singer_pct":60,"all_singers":{"Maya R":2,"Rodriguez":3},"avg_position":0.57,"historical_role":"MID"},"Signed, Sealed, Delivered":{"play_count":5,"cut_guitar_count":4,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":4,"singers":{"Tue":2,"Rettig":2},"gig_types":[],"primary_singer":"Rettig","singer_pct":60,"all_singers":{"Tue":2,"Rettig":3},"avg_position":0.45,"historical_role":"MID"},"Ain\u2019t It Fun":{"play_count":9,"cut_guitar_count":5,"full_guitar_count":4,"with_horns_count":2,"without_horns_count":7,"singers":{"Patterson":4,"Rodriguez":5},"gig_types":[],"primary_singer":"Patterson","singer_pct":57,"all_singers":{"Patterson":4,"Rodriguez":2,"Maya R":1},"avg_position":0.31,"historical_role":"MID"},"Barracuda":{"play_count":11,"cut_guitar_count":3,"full_guitar_count":8,"with_horns_count":3,"without_horns_count":8,"singers":{"Patterson":10},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":9},"avg_position":0.44,"historical_role":"MID"},"Good Times Bad Times":{"play_count":2,"cut_guitar_count":1,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":2,"singers":{"Rettig":2},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":2},"avg_position":0.41,"historical_role":"MID"},"Before I Let Go":{"play_count":19,"cut_guitar_count":10,"full_guitar_count":9,"with_horns_count":3,"without_horns_count":16,"singers":{"Tue":15,"Rettig":1},"gig_types":[],"primary_singer":"Tue","singer_pct":78,"all_singers":{"Tue":7,"Rettig":2},"avg_position":0.67,"historical_role":"MID"},"In The Stone":{"play_count":7,"cut_guitar_count":2,"full_guitar_count":5,"with_horns_count":3,"without_horns_count":4,"singers":{"Tue":5},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":3},"avg_position":0.57,"historical_role":"MID"},"September":{"play_count":10,"cut_guitar_count":2,"full_guitar_count":8,"with_horns_count":4,"without_horns_count":6,"singers":{"Patterson":1,"Rodriguez":5},"gig_types":[],"primary_singer":null,"singer_pct":29,"all_singers":{"Maya R":2,"Patterson":2,"Rettig":1,"Tue":1,"Rodriguez":1},"avg_position":0.5,"historical_role":"MID"},"That\u2019s The Way of the World":{"play_count":9,"cut_guitar_count":2,"full_guitar_count":7,"with_horns_count":6,"without_horns_count":3,"singers":{"Rettig":4},"gig_types":[],"primary_singer":"Rettig","singer_pct":89,"all_singers":{"Rettig":8,"Tue":1},"avg_position":0.74,"historical_role":"MID"},"Let\u2019s Groove Tonight":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{"Rettig":1},"gig_types":[],"primary_singer":null,"singer_pct":50,"all_singers":{"Tue":1,"Rettig":1}},"Brother":{"play_count":6,"cut_guitar_count":2,"full_guitar_count":4,"with_horns_count":1,"without_horns_count":5,"singers":{"Patterson":5,"Rodriguez":1},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":3},"avg_position":0.89,"historical_role":"CLOSER"},"24K Magic":{"play_count":2,"cut_guitar_count":2,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":1,"singers":{},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":1}},"TAPS 202":{"play_count":2,"cut_guitar_count":2,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":2,"singers":{},"gig_types":[]},"Keep Your Head Up":{"play_count":7,"cut_guitar_count":6,"full_guitar_count":1,"with_horns_count":2,"without_horns_count":5,"singers":{"Rettig":7},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":3},"avg_position":0.43,"historical_role":"MID"},"Can\u2019t":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Happy":{"play_count":2,"cut_guitar_count":2,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":2,"singers":{},"gig_types":[],"avg_position":0.64,"historical_role":"MID"},"Affirmation Song":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Shake It Off":{"play_count":4,"cut_guitar_count":3,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":3,"singers":{"Rodriguez":2},"gig_types":[],"primary_singer":null,"singer_pct":50,"all_singers":{"Rodriguez":1,"Maya R":1},"avg_position":0.69,"historical_role":"MID"},"Don\u2019t":{"play_count":3,"cut_guitar_count":1,"full_guitar_count":2,"with_horns_count":2,"without_horns_count":1,"singers":{},"gig_types":[],"avg_position":0.8,"historical_role":"CLOSER"},"Surface Pressure":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{"Rodriguez":1},"gig_types":[]},"Good To Be Alive":{"play_count":7,"cut_guitar_count":3,"full_guitar_count":4,"with_horns_count":1,"without_horns_count":6,"singers":{"Rettig":6},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":6},"avg_position":0.36,"historical_role":"MID"},"How Far":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"You\u2019re Welcome":{"play_count":5,"cut_guitar_count":2,"full_guitar_count":3,"with_horns_count":1,"without_horns_count":4,"singers":{"Tue":5},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":4},"avg_position":0.46,"historical_role":"MID"},"Mickey Mouse 70\u2019s Theme":{"play_count":2,"cut_guitar_count":2,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":2,"singers":{},"gig_types":[],"avg_position":0.91,"historical_role":"CLOSER"},"Mickey Mouse Clubhouse Song":{"play_count":2,"cut_guitar_count":2,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":2,"singers":{},"gig_types":[],"avg_position":1.0,"historical_role":"CLOSER"},"Treasure":{"play_count":6,"cut_guitar_count":6,"full_guitar_count":0,"with_horns_count":3,"without_horns_count":3,"singers":{"Rettig":3},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":2},"avg_position":0.08,"historical_role":"OPENER"},"Love Story":{"play_count":5,"cut_guitar_count":3,"full_guitar_count":2,"with_horns_count":2,"without_horns_count":3,"singers":{"Patterson":5},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":3},"avg_position":0.54,"historical_role":"MID"},"I\u2019ll Be Waiting":{"play_count":3,"cut_guitar_count":2,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":2,"singers":{"Patterson":1},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":1},"avg_position":0.24,"historical_role":"OPENER"},"I Want It That Way":{"play_count":5,"cut_guitar_count":3,"full_guitar_count":2,"with_horns_count":3,"without_horns_count":2,"singers":{"Rettig":3},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":3},"avg_position":0.43,"historical_role":"MID"},"Rather Be":{"play_count":4,"cut_guitar_count":3,"full_guitar_count":1,"with_horns_count":4,"without_horns_count":0,"singers":{"Rodriguez":3},"gig_types":[],"primary_singer":"Rodriguez","singer_pct":67,"all_singers":{"Rodriguez":2,"Maya R":1},"avg_position":0.68,"historical_role":"MID"},"American Soldier":{"play_count":11,"cut_guitar_count":6,"full_guitar_count":5,"with_horns_count":1,"without_horns_count":10,"singers":{"Tue":6,"Rettig":4},"gig_types":[],"primary_singer":"Tue","singer_pct":60,"all_singers":{"Tue":3,"Rettig":2},"avg_position":0.94,"historical_role":"CLOSER"},"If I":{"play_count":2,"cut_guitar_count":1,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":2,"singers":{},"gig_types":[],"avg_position":0.22,"historical_role":"OPENER"},"Learn To Fly":{"play_count":2,"cut_guitar_count":2,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":1,"singers":{"Tue":1,"Rettig":1},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1},"avg_position":0.66,"historical_role":"MID"},"America":{"play_count":5,"cut_guitar_count":1,"full_guitar_count":4,"with_horns_count":1,"without_horns_count":4,"singers":{"Rodriguez":4},"gig_types":[],"avg_position":0.89,"historical_role":"CLOSER"},"Signed Sealed Delivered":{"play_count":5,"cut_guitar_count":1,"full_guitar_count":4,"with_horns_count":4,"without_horns_count":1,"singers":{"Tue":1},"gig_types":[],"primary_singer":"Tue","singer_pct":75,"all_singers":{"Tue":3,"Rettig":1},"avg_position":0.2,"historical_role":"OPENER"},"In the Stone":{"play_count":3,"cut_guitar_count":1,"full_guitar_count":2,"with_horns_count":0,"without_horns_count":3,"singers":{"Tue":3},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":1},"avg_position":0.17,"historical_role":"OPENER"},"Getaway":{"play_count":10,"cut_guitar_count":2,"full_guitar_count":8,"with_horns_count":6,"without_horns_count":4,"singers":{"Rodriguez":2,"Rettig":3},"gig_types":[],"primary_singer":"Rodriguez","singer_pct":55,"all_singers":{"Rodriguez":6,"Rettig":5},"avg_position":0.74,"historical_role":"MID"},"The Freedom Song":{"play_count":7,"cut_guitar_count":5,"full_guitar_count":2,"with_horns_count":2,"without_horns_count":5,"singers":{"Rettig":5},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":3},"avg_position":0.42,"historical_role":"MID"},"Great Escape":{"play_count":3,"cut_guitar_count":1,"full_guitar_count":2,"with_horns_count":0,"without_horns_count":3,"singers":{"Rettig":3},"gig_types":[],"avg_position":0.57,"historical_role":"MID"},"Trouble":{"play_count":20,"cut_guitar_count":8,"full_guitar_count":12,"with_horns_count":8,"without_horns_count":12,"singers":{"Rettig":16},"gig_types":[],"primary_singer":"Rettig","singer_pct":94,"all_singers":{"Rettig":16,"Tue":1},"avg_position":0.52,"historical_role":"MID"},"Love Me Back to Life":{"play_count":4,"cut_guitar_count":1,"full_guitar_count":3,"with_horns_count":0,"without_horns_count":4,"singers":{"Rodriguez":4},"gig_types":[],"primary_singer":null,"singer_pct":50,"all_singers":{"Rodriguez":1,"Maya R":1},"avg_position":0.27,"historical_role":"MID"},"Introduction":{"play_count":4,"cut_guitar_count":3,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":4,"singers":{"Rettig":4},"gig_types":[]},"GBUSA":{"play_count":8,"cut_guitar_count":2,"full_guitar_count":6,"with_horns_count":1,"without_horns_count":7,"singers":{},"gig_types":[],"avg_position":0.94,"historical_role":"CLOSER"},"Be All You Can Be Outro":{"play_count":2,"cut_guitar_count":2,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":2,"singers":{},"gig_types":[],"avg_position":1.0,"historical_role":"CLOSER"},"Don\u2019t Start Now":{"play_count":16,"cut_guitar_count":5,"full_guitar_count":11,"with_horns_count":2,"without_horns_count":14,"singers":{"Rodriguez":2,"Patterson":12},"gig_types":[],"primary_singer":"Patterson","singer_pct":87,"all_singers":{"Maya R":2,"Patterson":13},"avg_position":0.5,"historical_role":"MID"},"Don\u2019t Stop Believing":{"play_count":6,"cut_guitar_count":4,"full_guitar_count":2,"with_horns_count":1,"without_horns_count":5,"singers":{"Rodriguez":3,"Patterson":2},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":2},"avg_position":0.7,"historical_role":"MID"},"Sign, Sealed, Delivered":{"play_count":2,"cut_guitar_count":1,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":2,"singers":{"Rettig":1},"gig_types":[]},"2024 SET":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"subject to change":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Like":{"play_count":2,"cut_guitar_count":0,"full_guitar_count":2,"with_horns_count":1,"without_horns_count":1,"singers":{},"gig_types":[],"avg_position":0.29,"historical_role":"MID"},"Misery Business":{"play_count":10,"cut_guitar_count":2,"full_guitar_count":8,"with_horns_count":4,"without_horns_count":6,"singers":{"Rodriguez":8,"Patterson":1},"gig_types":[],"primary_singer":"Rodriguez","singer_pct":62,"all_singers":{"Rodriguez":5,"Patterson":1,"Maya R":2},"avg_position":0.45,"historical_role":"MID"},"Open Your Eyes":{"play_count":2,"cut_guitar_count":0,"full_guitar_count":2,"with_horns_count":1,"without_horns_count":1,"singers":{"Rettig":2},"gig_types":[],"avg_position":0.62,"historical_role":"MID"},"Letters From War":{"play_count":6,"cut_guitar_count":0,"full_guitar_count":6,"with_horns_count":3,"without_horns_count":3,"singers":{"Rettig":6},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":5},"avg_position":0.75,"historical_role":"MID"},"You\u2019ve":{"play_count":2,"cut_guitar_count":0,"full_guitar_count":2,"with_horns_count":1,"without_horns_count":1,"singers":{},"gig_types":[],"avg_position":0.85,"historical_role":"CLOSER"},"Travelin\u2019 Soldier":{"play_count":2,"cut_guitar_count":2,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":1,"singers":{"Rodriguez":2},"gig_types":[],"primary_singer":"Rodriguez","singer_pct":100,"all_singers":{"Rodriguez":1},"avg_position":0.49,"historical_role":"MID"},"That\u2019s":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"Ain\u2019t":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"I\u2019ll":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"Rolling In":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"Sweet Child O":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"Never Too Much":{"play_count":5,"cut_guitar_count":0,"full_guitar_count":5,"with_horns_count":1,"without_horns_count":4,"singers":{"Rettig":3,"Tue":1},"gig_types":[],"primary_singer":"Tue","singer_pct":57,"all_singers":{"Tue":4,"Rettig":3},"avg_position":0.75,"historical_role":"CLOSER"},"Purple Rain":{"play_count":3,"cut_guitar_count":1,"full_guitar_count":2,"with_horns_count":1,"without_horns_count":2,"singers":{"Rodriguez":2,"Rettig":1},"gig_types":[],"avg_position":0.4,"historical_role":"MID"},"Sign Sealed Delivered":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"Like I\u2019m Gonna Lose You":{"play_count":2,"cut_guitar_count":1,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":2,"singers":{"Rodriguez":1,"Tue":1},"gig_types":[],"primary_singer":null,"singer_pct":50,"all_singers":{"Tue":1,"Maya R":1},"avg_position":0.64,"historical_role":"MID"},"You\u2019ve Got a Friend":{"play_count":2,"cut_guitar_count":0,"full_guitar_count":2,"with_horns_count":0,"without_horns_count":2,"singers":{"Rodriguez":2},"gig_types":[],"primary_singer":"Maya R","singer_pct":100,"all_singers":{"Maya R":1}},"Right Now":{"play_count":2,"cut_guitar_count":0,"full_guitar_count":2,"with_horns_count":0,"without_horns_count":2,"singers":{"Rodriguez":1},"gig_types":[]},"These Colors Don\u2019t Run":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{"Tue":1},"gig_types":[]},"Rise Up":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{"Rodriguez":1},"gig_types":[]},"Enter Sandman":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{"Rettig":1},"gig_types":[]},"CJCS Acoustic Mission":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Triste":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Sweet Home Chicago":{"play_count":3,"cut_guitar_count":1,"full_guitar_count":2,"with_horns_count":1,"without_horns_count":2,"singers":{"Tue":3},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":2},"avg_position":0.17,"historical_role":"OPENER"},"Watermelon Man":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Lucky Loosey":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"The Chicken":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Beautiful":{"play_count":2,"cut_guitar_count":1,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":2,"singers":{"Rodriguez":1,"Patterson":1},"gig_types":[]},"The Climb":{"play_count":2,"cut_guitar_count":1,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":2,"singers":{"Rodriguez":2},"gig_types":[]},"Don\u2019t Know Why":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{"Rodriguez":1},"gig_types":[]},"Levitating":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{"Rodriguez":1},"gig_types":[]},"Waiting on the World to Change":{"play_count":3,"cut_guitar_count":2,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":2,"singers":{"Rettig":3},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":2},"avg_position":0.3,"historical_role":"MID"},"Before He Cheats":{"play_count":2,"cut_guitar_count":2,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":1,"singers":{"Patterson":1},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":1},"avg_position":0.4,"historical_role":"MID"},"Learn to Fly":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{"Tue":1},"gig_types":[]},"Freedom Song":{"play_count":2,"cut_guitar_count":0,"full_guitar_count":2,"with_horns_count":0,"without_horns_count":2,"singers":{"Rettig":2},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1}},"Firework":{"play_count":7,"cut_guitar_count":2,"full_guitar_count":5,"with_horns_count":2,"without_horns_count":5,"singers":{"Rodriguez":1,"Patterson":5},"gig_types":[],"primary_singer":"Patterson","singer_pct":83,"all_singers":{"Patterson":5,"Rodriguez":1},"avg_position":0.74,"historical_role":"MID"},"Hard to Handle":{"play_count":6,"cut_guitar_count":1,"full_guitar_count":5,"with_horns_count":4,"without_horns_count":2,"singers":{"Tue":2},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":4},"avg_position":0.44,"historical_role":"MID"},"I Lived":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{"Tue":1},"gig_types":[]},"California Dreamin\u2019":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{"Rodriguez":1},"gig_types":[]},"California Stars":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{"Tue":1},"gig_types":[]},"Hotel California":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{"Rettig":1},"gig_types":[]},"Faithfully":{"play_count":2,"cut_guitar_count":2,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":1,"singers":{"Rodriguez":1,"Patterson":1},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":1},"avg_position":0.32,"historical_role":"MID"},"Personnel":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Rainbow":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{"Patterson":1},"gig_types":[]},"Be My Friend":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{"Patterson":1},"gig_types":[]},"Don't":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"06.27.2025 Capitol Steps Concert":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"Celebration":{"play_count":17,"cut_guitar_count":6,"full_guitar_count":11,"with_horns_count":6,"without_horns_count":11,"singers":{"Tue":9,"Rettig":2},"gig_types":[],"primary_singer":"Tue","singer_pct":71,"all_singers":{"Tue":12,"Rettig":5},"avg_position":0.22,"historical_role":"OPENER"},"Intro, I Wish, Higher Ground":{"play_count":4,"cut_guitar_count":0,"full_guitar_count":4,"with_horns_count":4,"without_horns_count":0,"singers":{},"gig_types":[],"primary_singer":"Maya R","singer_pct":67,"all_singers":{"Maya R":2,"Rettig":1},"avg_position":0.12,"historical_role":"OPENER"},"Every Little Thing She Does":{"play_count":3,"cut_guitar_count":0,"full_guitar_count":3,"with_horns_count":2,"without_horns_count":1,"singers":{"Rettig":1},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":3},"avg_position":0.27,"historical_role":"MID"},"What You Won\u2019t Do For the Two of Us":{"play_count":6,"cut_guitar_count":1,"full_guitar_count":5,"with_horns_count":5,"without_horns_count":1,"singers":{"Tue":1},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":6},"avg_position":0.57,"historical_role":"MID"},"Good Girl":{"play_count":8,"cut_guitar_count":1,"full_guitar_count":7,"with_horns_count":5,"without_horns_count":3,"singers":{"Patterson":8},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":8},"avg_position":0.37,"historical_role":"MID"},"Man! I Feel Like A Woman":{"play_count":8,"cut_guitar_count":2,"full_guitar_count":6,"with_horns_count":3,"without_horns_count":5,"singers":{"Rodriguez":5},"gig_types":[],"primary_singer":"Rodriguez","singer_pct":88,"all_singers":{"Rodriguez":7,"Maya R":1},"avg_position":0.4,"historical_role":"MID"},"Lose Control":{"play_count":11,"cut_guitar_count":1,"full_guitar_count":10,"with_horns_count":6,"without_horns_count":5,"singers":{"Tue":8},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":11},"avg_position":0.56,"historical_role":"MID"},"All American":{"play_count":10,"cut_guitar_count":0,"full_guitar_count":10,"with_horns_count":6,"without_horns_count":4,"singers":{"Patterson":8,"Rodriguez":2},"gig_types":[],"primary_singer":null,"singer_pct":44,"all_singers":{"Rodriguez":5,"Patterson":8,"Maya R":5},"avg_position":0.68,"historical_role":"MID"},"Look At Me":{"play_count":4,"cut_guitar_count":0,"full_guitar_count":4,"with_horns_count":3,"without_horns_count":1,"singers":{"Tue":1},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":4},"avg_position":0.48,"historical_role":"MID"},"Love Me Back To Life":{"play_count":13,"cut_guitar_count":3,"full_guitar_count":10,"with_horns_count":8,"without_horns_count":5,"singers":{"Rodriguez":5},"gig_types":[],"primary_singer":"Rodriguez","singer_pct":83,"all_singers":{"Rodriguez":10,"Maya R":2},"avg_position":0.45,"historical_role":"MID"},"04.21.2025 Easter Egg Roll":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"Fantasy":{"play_count":5,"cut_guitar_count":2,"full_guitar_count":3,"with_horns_count":2,"without_horns_count":3,"singers":{"Rodriguez":3},"gig_types":[],"primary_singer":"Rodriguez","singer_pct":80,"all_singers":{"Patterson":1,"Rodriguez":4},"avg_position":0.56,"historical_role":"MID"},"Love Song":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{"Rodriguez":1},"gig_types":[],"primary_singer":"Rodriguez","singer_pct":100,"all_singers":{"Rodriguez":1}},"Walking On Sunshine":{"play_count":5,"cut_guitar_count":1,"full_guitar_count":4,"with_horns_count":2,"without_horns_count":3,"singers":{"Rodriguez":3},"gig_types":[],"primary_singer":"Rodriguez","singer_pct":100,"all_singers":{"Rodriguez":5},"avg_position":0.43,"historical_role":"MID"},"Uptown Funk":{"play_count":6,"cut_guitar_count":2,"full_guitar_count":4,"with_horns_count":3,"without_horns_count":3,"singers":{"Tue":3},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":5},"avg_position":0.62,"historical_role":"MID"},"Days Go By":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{"Rettig":1},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1}},"Just Fine":{"play_count":5,"cut_guitar_count":1,"full_guitar_count":4,"with_horns_count":3,"without_horns_count":2,"singers":{"Patterson":1,"Rodriguez":4},"gig_types":[],"primary_singer":"Maya R","singer_pct":60,"all_singers":{"Patterson":1,"Rodriguez":1,"Maya R":3},"avg_position":0.4,"historical_role":"MID"},"Rolling In The Deep":{"play_count":2,"cut_guitar_count":1,"full_guitar_count":1,"with_horns_count":2,"without_horns_count":0,"singers":{"Rodriguez":2},"gig_types":[],"primary_singer":"Rodriguez","singer_pct":100,"all_singers":{"Rodriguez":2},"avg_position":0.65,"historical_role":"MID"},"05.24.2025 TAPS Saturday Performance":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"04.24.2025 Bring Your Child To Work Day":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Shining Star -":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{"Rettig":1},"gig_types":[]},"How Far I\u2019ll Go":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{"Patterson":1},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":1}},"Can\u2019t Stop The Feeling":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{"Tue":1},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":1}},"Don\u2019t Stop Believing -":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{"Patterson":1},"gig_types":[]},"08.06.2025 Fort Belvoir":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Don\u2019t Start Now -":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{"Patterson":1},"gig_types":[]},"Piece of My Heart":{"play_count":5,"cut_guitar_count":1,"full_guitar_count":4,"with_horns_count":1,"without_horns_count":4,"singers":{"Patterson":5},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":5},"avg_position":0.72,"historical_role":"MID"},"Vertigo":{"play_count":5,"cut_guitar_count":1,"full_guitar_count":4,"with_horns_count":1,"without_horns_count":4,"singers":{"Tue":5},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":5},"avg_position":0.34,"historical_role":"MID"},"Waiting on the World To Change":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{"Rettig":1},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1}},"That\u2019s The Way of The World":{"play_count":2,"cut_guitar_count":1,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":1,"singers":{"Rettig":2},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":2},"avg_position":0.81,"historical_role":"CLOSER"},"You\u2019ve Got A Friend":{"play_count":4,"cut_guitar_count":1,"full_guitar_count":3,"with_horns_count":2,"without_horns_count":2,"singers":{"Rodriguez":4},"gig_types":[],"primary_singer":"Rodriguez","singer_pct":100,"all_singers":{"Rodriguez":4},"avg_position":0.97,"historical_role":"CLOSER"},"06.14.2025 Army Birthday":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"Rebel Yell":{"play_count":6,"cut_guitar_count":0,"full_guitar_count":6,"with_horns_count":2,"without_horns_count":4,"singers":{"Tue":5},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":5},"avg_position":0.5,"historical_role":"MID"},"For You":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{"Rettig":1},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1}},"Man! I Feel Like a Woman":{"play_count":3,"cut_guitar_count":1,"full_guitar_count":2,"with_horns_count":3,"without_horns_count":0,"singers":{"Rodriguez":1},"gig_types":[],"primary_singer":"Rodriguez","singer_pct":67,"all_singers":{"Rodriguez":2,"Maya R":1},"avg_position":0.67,"historical_role":"MID"},"07.04.2025 WH":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"TUSAB and Air Force":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"TUSAB":{"play_count":3,"cut_guitar_count":3,"full_guitar_count":0,"with_horns_count":3,"without_horns_count":0,"singers":{},"gig_types":[]},"Air Force":{"play_count":2,"cut_guitar_count":2,"full_guitar_count":0,"with_horns_count":2,"without_horns_count":0,"singers":{},"gig_types":[]},"10.01.2025 Burn Camp":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"About That Time -":{"play_count":3,"cut_guitar_count":1,"full_guitar_count":2,"with_horns_count":0,"without_horns_count":3,"singers":{"Patterson":3},"gig_types":[],"avg_position":0.26,"historical_role":"MID"},"Walking on Sunshine":{"play_count":9,"cut_guitar_count":2,"full_guitar_count":7,"with_horns_count":1,"without_horns_count":8,"singers":{"Rodriguez":6},"gig_types":[],"primary_singer":"Rodriguez","singer_pct":56,"all_singers":{"Rodriguez":5,"Maya R":4},"avg_position":0.74,"historical_role":"MID"},"09.30.2025 VCJCS Retirement":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Kickstart My Heart":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Crazy On You":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Jump":{"play_count":2,"cut_guitar_count":1,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":1,"singers":{"Rettig":2},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":2},"avg_position":0.6,"historical_role":"MID"},"Welcome to the Jungle":{"play_count":2,"cut_guitar_count":0,"full_guitar_count":2,"with_horns_count":1,"without_horns_count":1,"singers":{"Patterson":1},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":1},"avg_position":0.6,"historical_role":"MID"},"Wanted Dead or Alive":{"play_count":4,"cut_guitar_count":0,"full_guitar_count":4,"with_horns_count":1,"without_horns_count":3,"singers":{"Rettig":4},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":4},"avg_position":0.42,"historical_role":"MID"},"London Calling -":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{"Rettig":1},"gig_types":[]},"Immigrant Song":{"play_count":2,"cut_guitar_count":1,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":1,"singers":{"Patterson":1},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":1},"avg_position":0.91,"historical_role":"CLOSER"},"Ain\u2019t Talkin\u2019 \u2018Bout Love-":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{"Rettig":1},"gig_types":[]},"Mean Street -":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{"Rettig":1},"gig_types":[]},"You Shook Me All Night Long":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"05.17.2025 National Harbor":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"What You Won\u2019t Do For The Two of Us":{"play_count":2,"cut_guitar_count":0,"full_guitar_count":2,"with_horns_count":0,"without_horns_count":2,"singers":{"Tue":1,"Rettig":1},"gig_types":[],"primary_singer":"Tue","singer_pct":67,"all_singers":{"Tue":2,"Rettig":1},"avg_position":0.22,"historical_role":"OPENER"},"10.15.2025 Marshall Dinner":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Heroes":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{"Tue":1},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":1}},"Higher":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{"Rodriguez":1},"gig_types":[],"primary_singer":"Rodriguez","singer_pct":100,"all_singers":{"Rodriguez":1}},"I Drive Your Truck":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{"Rettig":1},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1}},"O Fortuna":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{"Patterson":1},"gig_types":[]},"10.13.2025 ROTC Luncheon":{"play_count":2,"cut_guitar_count":1,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":2,"singers":{},"gig_types":[]},"03.23.2025 Maryland Hall Concert":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"Purple Rain -":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{"Rettig":1},"gig_types":[]},"12.04.2025 National Tree Lighting Preshow":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"10.10.2025 SMA BBQ":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"05.24.2025 TAPS Closing Ceremonies":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"12.10.2025 NFP":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"07.19.2025 National Harbor":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"Change":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"07.04.2025 Fairfax July 4th Celebration":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"Dance The Night":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{"Rodriguez":1},"gig_types":[],"primary_singer":"Rodriguez","singer_pct":100,"all_singers":{"Rodriguez":1}},"Hot N Cold":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{"Patterson":1},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":1}},"Change The World":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{"Rettig":1},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1}},"Ain\u2019t No Mountain":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{"Rettig":1},"gig_types":[],"primary_singer":null,"singer_pct":50,"all_singers":{"Rodriguez":1,"Rettig":1}},"Dancing Queen":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{"Patterson":1},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":1}},"Free":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{"Rettig":1},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1}},"I Wanna Dance With Somebody":{"play_count":5,"cut_guitar_count":2,"full_guitar_count":3,"with_horns_count":2,"without_horns_count":3,"singers":{"Patterson":4},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":5},"avg_position":0.28,"historical_role":"MID"},"Piece Of My Heart":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{"Patterson":1},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":1}},"Live Like We\u2019re Dyin\u2019":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{"Rettig":1},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1}},"Born This Way":{"play_count":6,"cut_guitar_count":2,"full_guitar_count":4,"with_horns_count":2,"without_horns_count":4,"singers":{"Rodriguez":5},"gig_types":[],"primary_singer":"Maya R","singer_pct":80,"all_singers":{"Rodriguez":1,"Maya R":4},"avg_position":0.26,"historical_role":"MID"},"Don\u2019t Stop Believin\u2019":{"play_count":3,"cut_guitar_count":1,"full_guitar_count":2,"with_horns_count":1,"without_horns_count":2,"singers":{"Patterson":2},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":2},"avg_position":0.72,"historical_role":"MID"},"In The Stone, September":{"play_count":2,"cut_guitar_count":1,"full_guitar_count":1,"with_horns_count":2,"without_horns_count":0,"singers":{"Tue":1},"gig_types":[],"primary_singer":null,"singer_pct":25,"all_singers":{"Patterson":1,"Rodriguez":1,"Tue":1,"Maya R":1},"avg_position":0.38,"historical_role":"MID"},"I Wish, Higher Ground":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[],"primary_singer":null,"singer_pct":50,"all_singers":{"Rodriguez":1,"Patterson":1}},"Life Is A Highway":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{"Rettig":1},"gig_types":[],"primary_singer":null,"singer_pct":50,"all_singers":{"Rettig":1,"Rodriguez":1}},"Hard To Handle":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1}},"Good Times, Bad Times":{"play_count":3,"cut_guitar_count":1,"full_guitar_count":2,"with_horns_count":2,"without_horns_count":1,"singers":{"Rettig":3},"gig_types":[],"primary_singer":"Rettig","singer_pct":75,"all_singers":{"Rettig":3,"Tue":1},"avg_position":0.52,"historical_role":"MID"},"Sweet Child O\u2019 Mine":{"play_count":3,"cut_guitar_count":1,"full_guitar_count":2,"with_horns_count":2,"without_horns_count":1,"singers":{"Rodriguez":3},"gig_types":[],"primary_singer":"Maya R","singer_pct":67,"all_singers":{"Rodriguez":1,"Maya R":2},"avg_position":0.56,"historical_role":"MID"},"10.11.2025 Pasta Dinner":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"05.23.2025 TAPS Kids":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"KIDS SET":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"10.26.2025 New Orleans Saints Pregame":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Intro":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{"Rodriguez":1},"gig_types":[]},"What You Won\u2019t Do For The Two Of Us":{"play_count":3,"cut_guitar_count":0,"full_guitar_count":3,"with_horns_count":0,"without_horns_count":3,"singers":{"Tue":3},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":3},"avg_position":0.58,"historical_role":"MID"},"09.12.2025 MDW Organization Day":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Wanted Dead Or Alive":{"play_count":2,"cut_guitar_count":0,"full_guitar_count":2,"with_horns_count":0,"without_horns_count":2,"singers":{"Rettig":2},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":2},"avg_position":1.0,"historical_role":"CLOSER"},"Welcome back during song":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Can\u2019t Go For That":{"play_count":2,"cut_guitar_count":0,"full_guitar_count":2,"with_horns_count":0,"without_horns_count":2,"singers":{"Rettig":2},"gig_types":[]},"12.13.2025 NFP":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"07.25.2025 Capitol Steps":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"12.12.2025 NFP":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"10.03.2025 AG Ball":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"11.09.2025 Washington Commanders Pregame":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"06.14.2025 Army Birthday Parade":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"06.09.2026 NFP":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"God Bless USA":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[],"primary_singer":"Maya R","singer_pct":100,"all_singers":{"Maya R":1}},"Can't Stop the Feeling":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":1},"historical_role":"OPENER","avg_position":0.1},"Man! I Feel Like a Woman!":{"play_count":6,"cut_guitar_count":2,"full_guitar_count":4,"with_horns_count":3,"without_horns_count":3,"singers":{},"gig_types":[],"primary_singer":"Maya R","singer_pct":100,"all_singers":{"Maya R":6},"avg_position":0.74,"historical_role":"MID"},"24k Magic":{"play_count":2,"cut_guitar_count":1,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":1,"singers":{"Tue":1},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":2},"avg_position":0.27,"historical_role":"MID"},"Don't Start Now":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":1}},"Let's Groove":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":1}},"Ain't it Fun":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{"Rodriguez":1},"gig_types":[],"primary_singer":"Maya R","singer_pct":100,"all_singers":{"Maya R":1}},"Fight Song":{"play_count":2,"cut_guitar_count":1,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":1,"singers":{"Patterson":2},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":2},"avg_position":0.52,"historical_role":"MID"},"Rude":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{"Rettig":1},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1}},"Good 4 U":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{"Patterson":1},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":1}},"Beautiful Things":{"play_count":3,"cut_guitar_count":2,"full_guitar_count":1,"with_horns_count":2,"without_horns_count":1,"singers":{"Rettig":3},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":3},"avg_position":0.37,"historical_role":"MID"},"Golden":{"play_count":3,"cut_guitar_count":1,"full_guitar_count":2,"with_horns_count":1,"without_horns_count":2,"singers":{"Patterson":2},"gig_types":[],"primary_singer":"Patterson","singer_pct":75,"all_singers":{"Patterson":3,"Maya R":1},"avg_position":0.96,"historical_role":"CLOSER"},"YMCA":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[],"primary_singer":null,"singer_pct":50,"all_singers":{"Tue":1,"Rettig":1}},"Good to Be Alive":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1}},"Don't Stop Belivin'":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":1}},"07.10.2025 GASF":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Always on the Run":{"play_count":2,"cut_guitar_count":0,"full_guitar_count":2,"with_horns_count":0,"without_horns_count":2,"singers":{"Tue":2},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":2},"avg_position":0.58,"historical_role":"MID"},"American Saturday Night":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{"Rettig":1},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1}},"04.23.2026 Bring Your Kid To Work Day":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Can\u2019t Stop the Feeling":{"play_count":4,"cut_guitar_count":1,"full_guitar_count":3,"with_horns_count":1,"without_horns_count":3,"singers":{"Tue":1},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":3},"avg_position":0.09,"historical_role":"OPENER"},"05.22.2026 Taps Day 1":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Golden -":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{"Patterson":1},"gig_types":[]},"I Love RnR":{"play_count":2,"cut_guitar_count":0,"full_guitar_count":2,"with_horns_count":0,"without_horns_count":2,"singers":{"Patterson":2},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":2},"avg_position":0.62,"historical_role":"MID"},"05.23.2026 TAPS Day 2":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"06.26.2026 GASF":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Sweet Child of Mine":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{"Rodriguez":1},"gig_types":[],"primary_singer":"Maya R","singer_pct":100,"all_singers":{"Maya R":1}},"Man!":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Letters from War":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{"Rettig":1},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1}},"04.06.2026 EER":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"Sky Full of Stars":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":1}},"What You Won\u2019t Do":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":1}},"Adventure of a Lifetime":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{"Tue":1},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":1}},"It\u2019s Gonna Be Bye Bye Bye":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":1,"without_horns_count":0,"singers":{"Rettig":1},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1}},"04.15.2026 Purple Star Families":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"06.14.2026":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"Set 1 - 1600-1645":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"Dream On":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{"Rettig":1},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1}},"07.26.2026 Patterson Park":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"Star Spangled Banner":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"Waiting on the world to Change":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{"Rettig":1},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1}},"L-O-V-E":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[],"primary_singer":"Tue","singer_pct":100,"all_singers":{"Tue":2},"avg_position":0.12,"historical_role":"OPENER"},"Daft Punk Medley":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"Fix You":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{"Rodriguez":1},"gig_types":[],"primary_singer":"Maya R","singer_pct":100,"all_singers":{"Maya R":1}},"Where The Streets Have No Name":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{"Rettig":1},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1}},"Stairway to Heaven":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[],"primary_singer":"Maya R","singer_pct":100,"all_singers":{"Maya R":1}},"Bridge Over Troubled Water":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"06.28.2026 GASF Military Day":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"Travelin\u2019 Soldier -":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{"Rodriguez":1},"gig_types":[]},"01.20.2026 Leaders Conference":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Erik":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Maya":{"play_count":1,"cut_guitar_count":1,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"06.24.2026 GASF":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Gloria":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Only in America":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"Sweet Caroline":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":0,"without_horns_count":1,"singers":{},"gig_types":[]},"06.27.2025 GASF":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":1,"with_horns_count":1,"without_horns_count":0,"singers":{},"gig_types":[]},"Listen To The Music":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":0,"singers":{"Rettig":1},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1},"avg_position":0.0,"historical_role":"OPENER"},"Crazy":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":0,"singers":{"Rettig":1},"gig_types":[],"primary_singer":"Rettig","singer_pct":100,"all_singers":{"Rettig":1}},"In The Stone/September":{"play_count":6,"cut_guitar_count":0,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":0,"singers":{"Tue":3,"Rodriguez":3},"gig_types":[],"primary_singer":null,"singer_pct":50,"all_singers":{"Tue":3,"Rodriguez":3},"avg_position":0.75,"historical_role":"CLOSER"},"I Wish/Higher Ground":{"play_count":2,"cut_guitar_count":0,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":0,"singers":{"Rodriguez":1,"Patterson":1},"gig_types":[],"primary_singer":null,"singer_pct":50,"all_singers":{"Rodriguez":1,"Patterson":1},"avg_position":0.0,"historical_role":"OPENER"},"O Fortuna/Eye of the Tiger":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":0,"singers":{"Patterson":1},"gig_types":[],"primary_singer":"Patterson","singer_pct":100,"all_singers":{"Patterson":1}},"Intro/I Wish/Higher Ground":{"play_count":1,"cut_guitar_count":0,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":0,"singers":{"Rodriguez":1},"gig_types":[],"primary_singer":"Rodriguez","singer_pct":100,"all_singers":{"Rodriguez":1},"avg_position":0.03,"historical_role":"OPENER"},"Introduction/I Wish":{"play_count":4,"cut_guitar_count":0,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":0,"singers":{},"gig_types":[],"avg_position":0.66,"historical_role":"MID"},"Encore":{"play_count":2,"cut_guitar_count":0,"full_guitar_count":0,"with_horns_count":0,"without_horns_count":0,"singers":{},"gig_types":[],"avg_position":1.0,"historical_role":"CLOSER"}};
 const SINGER_COLS = ['Maya R','Rettig','Tue','Patterson','Melinda R'];
 const GENRE_FAMILIES = {
-  rock:    ['rock','classic rock','hard rock','punk','alternative','grunge'],
-  rnb:     ['r&b','soul','funk','motown','neo soul'],
-  country: ['country','country pop','country rock'],
-  pop:     ['pop','dance pop','synth pop','teen pop'],
-  hiphop:  ['hip hop','hip-hop','rap','trap'],
-  ballad:  ['ballad','power ballad','rock ballad'],
-  other:   ['jazz','classical','kids','instrumental','patriotic','n/a']
+  rock:['rock','classic rock','hard rock','punk','alternative','grunge'],
+  rnb:['r&b','soul','funk','motown','neo soul'],
+  country:['country','country pop','country rock'],
+  pop:['pop','dance pop','synth pop','teen pop'],
+  hiphop:['hip hop','hip-hop','rap','trap'],
+  ballad:['ballad','power ballad','rock ballad'],
+  other:['jazz','classical','kids','instrumental','patriotic','n/a']
 };
 const FAMILY_COMPAT = {
   rock:['rock','pop','rnb','country'],
@@ -498,95 +467,75 @@ const FAMILY_COMPAT = {
   other:['other','pop','rock','rnb','country']
 };
 
-let allSongs = [];
-let sets = [{name:'Set 1', minutes:45}];
-let runsheet = [];
-let availableSingers = [];
-let encoreSelected = null;
-let bandConfig = {horns:'full', guitars:'full', keys:'full'};
-let dragIndex = null;
+let allSongs = [], sets = [{name:'Set 1',minutes:45}], runsheet = [];
+let availableSingers = [], encoreSelected = null, dragIndex = null;
+let bandConfig = {horns:'full',guitars:'full',keys:'full'};
+let currentStep = 1, currentTab = 'gig';
 let _encoreCandidates = [];
+const SHOW_NOTES_KEY = 'drsetlist_shownotes';
+const LASTFM_CACHE_KEY = 'drsetlist_lfm';
+let showNotes = {}, lastfmCache = {};
+try { showNotes = JSON.parse(localStorage.getItem(SHOW_NOTES_KEY)||'{}'); } catch(e){}
+try { lastfmCache = JSON.parse(localStorage.getItem(LASTFM_CACHE_KEY)||'{}'); } catch(e){}
 
-window.addEventListener('load', () => { 
-  renderSets(); 
+window.addEventListener('load', () => {
+  renderSets();
   updateLayout();
   window.addEventListener('resize', updateLayout);
-  loadSheet(); // auto-load from worker
+  loadSheetFromWorker();
 });
 
-function updateLayout() {
-  const isDesktop = window.innerWidth >= 768;
-  const colArtist = document.getElementById('col-artist');
-  const colHist = document.getElementById('col-hist');
-  if(colArtist) colArtist.style.display = isDesktop ? '' : 'none';
-  if(colHist) colHist.style.display = isDesktop ? '' : 'none';
-  // On desktop, make sure all tabs visible
-  if(isDesktop) {
-    document.querySelectorAll('.tab-panel').forEach(p => {
-      p.style.display = 'flex';
-      p.style.flexDirection = 'column';
-    });
-  } else {
-    // Re-apply mobile tab state
-    showTab(currentTab || 'gig');
-  }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function setStatus(msg,err){ const el=document.getElementById('status'); el.textContent=msg; el.style.color=err?'#e05555':'#7a7a88'; }
+function toggleTag(btn){ btn.classList.toggle('active'); }
+function toggleExcl(btn){ btn.closest('.tag-grid').querySelectorAll('.tag').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); }
+
+// -- LAYOUT --
+function updateLayout(){
+  const desk = window.innerWidth >= 768;
+  ['col-artist','col-hist','col-cat'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display=desk?'':'none'; });
+  if(desk){ document.querySelectorAll('.tab-panel').forEach(p=>{p.style.display='flex';p.style.flexDirection='column';}); }
+  else { showTab(currentTab); }
   renderLibrary();
 }
-
-// -- UTILS --
-function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-let currentTab = 'gig';
-function showTab(name) {
-  currentTab = name;
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+function showTab(name){
+  currentTab=name;
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b => {
-    if(b.textContent.toLowerCase().includes(name==='gig'?'gig':name==='library'?'song':'setlist'))
-      b.classList.add('active');
-  });
-}
-function toggleTag(btn){ btn.classList.toggle('active'); }
-function toggleExcl(btn, grp){
-  btn.closest('.tag-grid').querySelectorAll('.tag').forEach(t=>t.classList.remove('active'));
-  btn.classList.add('active');
-}
-function setStatus(msg,err=false){
-  const el=document.getElementById('status');
-  el.textContent=msg; el.style.color=err?'#e05555':'#7a7a88';
+  document.querySelectorAll('.tab-btn').forEach(b=>{ if(b.textContent.toLowerCase()===name.toLowerCase()||
+    (name==='gig'&&b.textContent==='Gig')||(name==='library'&&b.textContent==='Songs')||(name==='runsheet'&&b.textContent==='Setlist')) b.classList.add('active'); });
 }
 
 // -- WIZARD --
-let currentStep = 1;
 function openStep(n){
-  if(n===2) showTab('library'); // show songs while filling details
-  document.getElementById(`step-${currentStep}`).classList.add('complete');
-  document.getElementById(`chk-${currentStep}`).textContent='v';
-  document.getElementById(`body-${currentStep}`).style.display='none';
-  const next = document.getElementById(`step-${n}`);
+  document.getElementById('step-'+currentStep).classList.add('complete');
+  document.getElementById('chk-'+currentStep).textContent='v';
+  document.getElementById('body-'+currentStep).style.display='none';
+  const next=document.getElementById('step-'+n);
   next.classList.remove('locked');
-  const body = document.getElementById(`body-${n}`);
+  const body=document.getElementById('body-'+n);
   body.style.display='flex'; body.style.flexDirection='column';
   currentStep=n;
   next.scrollIntoView({behavior:'smooth',block:'nearest'});
+  if(n===3) showTab('library');
 }
 function toggleStep(n){
-  const step=document.getElementById(`step-${n}`);
+  const step=document.getElementById('step-'+n);
   if(step.classList.contains('locked')) return;
-  const body=document.getElementById(`body-${n}`);
-  const isOpen = body.style.display!=='none';
-  body.style.display=isOpen?'none':'flex';
-  if(!isOpen) body.style.flexDirection='column';
+  const body=document.getElementById('body-'+n);
+  const open=body.style.display!=='none';
+  body.style.display=open?'none':'flex';
+  if(!open) body.style.flexDirection='column';
 }
 
 // -- PERSONNEL --
 function updatePersonnel(){
-  const checks = document.querySelectorAll('#body-2 input[type=checkbox]');
+  const checks=document.querySelectorAll('#body-2 input[type=checkbox]');
   availableSingers=[];
-  let guitars=0, keys=0, drums=0;
+  let guitars=0,keys=0,drums=0;
   checks.forEach(cb=>{
-    cb.closest('.person-check').classList.toggle('on', cb.checked);
+    cb.closest('.person-check').classList.toggle('on',cb.checked);
     const v=cb.value;
     if(['Maya R','Rettig','Tue','Patterson','Melinda R'].includes(v)&&cb.checked) availableSingers.push(v);
     if(['Waltemire','Leader'].includes(v)&&cb.checked) guitars++;
@@ -595,95 +544,68 @@ function updatePersonnel(){
   });
   bandConfig.guitars=guitars===1?'cut':'full';
   bandConfig.keys=keys===1?'cut':'full';
-
-  // Update singer filter
   const sel=document.getElementById('filter-singer');
   sel.innerHTML='<option value="">All Singers</option>'+(availableSingers.length
-    ? availableSingers.map(s=>`<option>${s}</option>`).join('')
-    : SINGER_COLS.map(s=>`<option>${s}</option>`).join(''));
-
+    ? availableSingers.map(s=>'<option>'+s+'</option>').join('')
+    : SINGER_COLS.map(s=>'<option>'+s+'</option>').join(''));
   const cutParts=[];
   if(guitars===1) cutParts.push('1 guitar');
   if(keys===1) cutParts.push('1 keyboard');
-  let html=`<strong style="color:var(--text)">${availableSingers.length} singer${availableSingers.length!==1?'s':''}</strong> . ${guitars}g . ${keys}k . ${drums}dr`;
-  if(cutParts.length) html+=`<br><span class="cut-warn">! Cut-down: ${cutParts.join(', ')}</span>`;
+  let html='<strong style="color:var(--text)">'+availableSingers.length+' singer'+(availableSingers.length!==1?'s':'')+'</strong> &middot; '+guitars+'g &middot; '+keys+'k &middot; '+drums+'dr';
+  if(cutParts.length) html+='<br><span class="cut-warn">Cut-down: '+cutParts.join(', ')+'</span>';
   document.getElementById('personnel-summary').innerHTML=html;
-  updatePrintHeader();
-  renderLibrary();
+  updatePrintHeader(); renderLibrary();
 }
 
 // -- SETS --
 function renderSets(){
   window._sets=sets;
-  document.getElementById('sets-list').innerHTML=sets.map((s,i)=>`
-    <div class="set-row">
-      <input type="text" value="${esc(s.name)}" oninput="sets[${i}].name=this.value;renderRunsheet()"/>
-      <input type="number" value="${s.minutes}" min="10" max="180" oninput="sets[${i}].minutes=+this.value;renderRunsheet()"/>
-      <button class="icon-btn" onclick="removeSet(${i})"></button>
-    </div>`).join('');
+  document.getElementById('sets-list').innerHTML=sets.map((s,i)=>
+    '<div class="set-row">'+
+    '<input type="text" value="'+esc(s.name)+'" oninput="sets['+i+'].name=this.value;renderRunsheet()"/>'+
+    '<input type="number" value="'+s.minutes+'" min="10" max="180" oninput="sets['+i+'].minutes=+this.value;renderRunsheet()"/>'+
+    '<button class="icon-btn" onclick="removeSet('+i+')">x</button>'+
+    '</div>').join('');
 }
 function addSet(){
-  sets.push({name:`Set ${sets.length+1}`,minutes:45});
+  sets.push({name:'Set '+(sets.length+1),minutes:45});
   renderSets();
   if(runsheet.length) runsheet.push({type:'break',label:'Break',minutes:15});
   renderRunsheet();
 }
-function removeSet(i){
-  if(sets.length===1) return;
-  sets.splice(i,1); renderSets(); renderRunsheet();
-}
+function removeSet(i){ if(sets.length===1) return; sets.splice(i,1); renderSets(); renderRunsheet(); }
 
 // -- LOAD SHEET --
-async function loadSheet(){
-  const url=document.getElementById('sheet-url').value.trim();
-  if(!url) return;
+async function loadSheetFromWorker(){
   setStatus('Loading...');
-  const proxies=[
-    u=>u,
-    u=>`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-    u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
-    u=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-  ];
-  for(let i=0;i<proxies.length;i++){
-    try{
-      setStatus(`Loading... (${i+1}/4)`);
-      const res=await fetch(proxies[i](url));
-      if(!res.ok) continue;
-      let csv;
-      if(i===1){ const j=await res.json(); csv=j.contents; }
-      else csv=await res.text();
-      if(!csv||csv.length<10) continue;
-      allSongs=parseCSV(csv);
-      if(!allSongs.length) continue;
-      populateGenres(); renderLibrary();
-      document.getElementById('song-total').textContent=allSongs.length+' songs';
-      setStatus(`v ${allSongs.length} songs`);
-      return;
-    } catch(e){ continue; }
+  try {
+    const res=await fetch('https://dr-setlist.cjrettig2001.workers.dev/sheet');
+    if(!res.ok) throw new Error('Worker error '+res.status);
+    const csv=await res.text();
+    if(!csv||csv.length<10) throw new Error('Empty');
+    allSongs=parseCSV(csv);
+    if(!allSongs.length) throw new Error('No songs');
+    populateGenres(); renderLibrary();
+    document.getElementById('song-total').textContent=allSongs.length+' songs';
+    setStatus('v '+allSongs.length+' songs loaded');
+  } catch(e){
+    setStatus('Auto-load failed -- use Load button',true);
+    document.getElementById('song-list').innerHTML='<div class="empty-msg">Could not auto-load.<br>Click "Load Songs (CSV / XLSX)" above.</div>';
   }
-  setStatus('URL failed -- use CSV button',true);
-  document.getElementById('song-list').innerHTML='<div class="empty-msg">URL load failed.<br>Use the  CSV button to load from file.</div>';
 }
 
-function loadCSVFile(input){
+function loadFile(input){
   const file=input.files[0]; if(!file) return;
-  const isXLSX = /\.xlsx?$/i.test(file.name);
-  setStatus('Reading file...');
-
+  const isXLSX=/\.xlsx?$/i.test(file.name);
+  setStatus('Reading...');
   if(isXLSX){
-    // Parse xlsx without SheetJS by extracting the shared strings + sheet XML
     const reader=new FileReader();
-    reader.onload=e=>{
-      parseXLSX(e.target.result).then(csv=>{
-        allSongs=parseCSV(csv);
-        populateGenres(); renderLibrary();
-        document.getElementById('song-total').textContent=allSongs.length+' songs';
-        setStatus('v '+allSongs.length+' songs from Excel');
-      }).catch(err=>{
-        setStatus('Excel parse failed -- please save as CSV instead', true);
-        console.error(err);
-      });
-    };
+    reader.onload=e=>{ parseXLSX(e.target.result).then(csv=>{
+      allSongs=parseCSV(csv);
+      populateGenres(); renderLibrary();
+      document.getElementById('song-total').textContent=allSongs.length+' songs';
+      setStatus('v '+allSongs.length+' songs from Excel');
+    }).catch(err=>{ setStatus('Excel parse failed -- use CSV',true); }); };
     reader.readAsArrayBuffer(file);
   } else {
     const reader=new FileReader();
@@ -691,378 +613,69 @@ function loadCSVFile(input){
       allSongs=parseCSV(e.target.result);
       populateGenres(); renderLibrary();
       document.getElementById('song-total').textContent=allSongs.length+' songs';
-      setStatus('v '+allSongs.length+' songs from CSV');
+      setStatus('v '+allSongs.length+' songs');
     };
     reader.readAsText(file);
   }
 }
 
-async function parseXLSX(buffer){
-  // Use DecompressionStream to unzip xlsx (no eval needed)
-  const bytes = new Uint8Array(buffer);
-  
-  // xlsx is a zip file - use the File System API approach
-  // Extract via manual zip parsing
-  const files = await unzipBuffer(bytes);
-  
-  // Get shared strings
-  const ssXml = files['xl/sharedStrings.xml'] || '';
-  const strings = [];
-  const siMatches = ssXml.matchAll(/<si>.*?<\/si>/gs);
-  for(const m of siMatches){
-    const t = [...m[0].matchAll(/<t[^>]*>([^<]*)<\/t>/g)].map(x=>x[1]).join('');
-    strings.push(t.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'"));
-  }
-
-  // Get first sheet
-  const wbXml = files['xl/workbook.xml'] || '';
-  const sheetMatch = wbXml.match(/r:id="(rId\d+)"/);
-  const rId = sheetMatch ? sheetMatch[1] : 'rId1';
-  const relXml = files['xl/_rels/workbook.xml.rels'] || '';
-  const relMatch = new RegExp(`Id="${rId}"[^/]*Target="([^"]+)"`).exec(relXml);
-  const sheetPath = 'xl/' + (relMatch ? relMatch[1] : 'worksheets/sheet1.xml');
-  const sheetXml = files[sheetPath] || files['xl/worksheets/sheet1.xml'] || '';
-
-  // Parse rows
-  const rows = [];
-  const rowMatches = sheetXml.matchAll(/<row[^>]*>(.*?)<\/row>/gs);
-  for(const rowM of rowMatches){
-    const cells = [];
-    const cellMatches = rowM[1].matchAll(/<c r="([A-Z]+\d+)"[^>]*t="([^"]*)"[^>]*>.*?<v>([^<]*)<\/v>.*?<\/c>/gs);
-    const cellMap = {};
-    for(const cm of cellMatches){
-      const col = cm[1].replace(/\d/g,'');
-      const type = cm[2];
-      let val = cm[3];
-      if(type==='s') val = strings[parseInt(val)] || '';
-      cellMap[col] = val;
-    }
-    // Also catch cells without type (numbers/dates)
-    const cellMatches2 = rowM[1].matchAll(/<c r="([A-Z]+\d+)"(?![^>]*t=)[^>]*>.*?<v>([^<]*)<\/v>/gs);
-    for(const cm of cellMatches2){
-      const col = cm[1].replace(/\d/g,'');
-      if(!cellMap[col]) cellMap[col] = cm[2];
-    }
-    if(Object.keys(cellMap).length) rows.push(cellMap);
-  }
-
-  if(!rows.length) throw new Error('No data found in sheet');
-
-  // Get column range
-  const allCols = new Set(rows.flatMap(r=>Object.keys(r)));
-  const colArr = [...allCols].sort();
-
-  // Convert to CSV
-  const csvRows = rows.map(r=>colArr.map(c=>{
-    const v=(r[c]||'').replace(/"/g,'""');
-    return `"${v}"`;
-  }).join(','));
-  return csvRows.join('\n');
-}
-
-async function unzipBuffer(bytes){
-  // Simple zip parser - no eval, no external libs
-  const files = {};
-  let offset = 0;
-  const view = new DataView(bytes.buffer);
-  
-  while(offset < bytes.length - 4){
-    const sig = view.getUint32(offset, true);
-    if(sig !== 0x04034b50) break; // local file header signature
-    
-    const flags = view.getUint16(offset+6, true);
-    const compression = view.getUint16(offset+8, true);
-    const compSize = view.getUint32(offset+18, true);
-    const uncompSize = view.getUint32(offset+22, true);
-    const nameLen = view.getUint16(offset+26, true);
-    const extraLen = view.getUint16(offset+28, true);
-    
-    const nameBytes = bytes.slice(offset+30, offset+30+nameLen);
-    const name = new TextDecoder().decode(nameBytes);
-    const dataStart = offset+30+nameLen+extraLen;
-    const data = bytes.slice(dataStart, dataStart+compSize);
-    
-    if(compression === 0){
-      // Stored (no compression)
-      files[name] = new TextDecoder('utf-8').decode(data);
-    } else if(compression === 8){
-      // Deflate
-      try{
-        const ds = new DecompressionStream('deflate-raw');
-        const writer = ds.writable.getWriter();
-        const reader = ds.readable.getReader();
-        writer.write(data);
-        writer.close();
-        const chunks = [];
-        while(true){
-          const {done, value} = await reader.read();
-          if(done) break;
-          chunks.push(value);
-        }
-        const total = chunks.reduce((a,b)=>a+b.length,0);
-        const result = new Uint8Array(total);
-        let pos=0;
-        for(const c of chunks){result.set(c,pos);pos+=c.length;}
-        files[name] = new TextDecoder('utf-8').decode(result);
-      } catch(e){ /* skip binary files */ }
-    }
-    
-    offset = dataStart + compSize;
-  }
-  return files;
-}
-
 function parseCSV(csv){
   const lines=csv.trim().split('\n');
   const headers=smartSplit(lines[0]).map(h=>h.trim().replace(/^"|"$/g,''));
-  return lines.slice(1).map(line=>{
-    const vals=smartSplit(line);
-    const obj={};
-    headers.forEach((h,i)=>obj[h]=(vals[i]||'').trim().replace(/^"|"$/g,''));
-    return obj;
-  }).filter(s=>s['Song']);
+  return lines.slice(1).map(line=>{ const vals=smartSplit(line); const obj={}; headers.forEach((h,i)=>obj[h]=(vals[i]||'').trim().replace(/^"|"$/g,'')); return obj; }).filter(s=>s['Song']);
 }
-function smartSplit(line){
-  const r=[]; let cur='',inQ=false;
-  for(let ch of line){
-    if(ch==='"') inQ=!inQ;
-    else if(ch===','&&!inQ){r.push(cur);cur='';}
-    else cur+=ch;
-  }
-  r.push(cur); return r;
-}
-function populateGenres(){
-  const g=new Set();
-  allSongs.forEach(s=>(s['Genre']||'').split(',').forEach(x=>g.add(x.trim())));
-  document.getElementById('filter-genre').innerHTML='<option value="">All Genres</option>'+[...g].sort().map(x=>`<option>${x}</option>`).join('');
-}
+function smartSplit(line){ const r=[]; let cur='',inQ=false; for(let ch of line){ if(ch==='"') inQ=!inQ; else if(ch===','&&!inQ){r.push(cur);cur='';} else cur+=ch; } r.push(cur); return r; }
+function populateGenres(){ const g=new Set(); allSongs.forEach(s=>(s['Genre']||'').split(',').forEach(x=>g.add(x.trim()))); document.getElementById('filter-genre').innerHTML='<option value="">All Genres</option>'+[...g].sort().map(x=>'<option>'+x+'</option>').join(''); }
 
-// -- KB LOOKUP --
-function findKB(songName){
-  if(!songName) return null;
-  const name=songName.toLowerCase().trim();
-  for(const [k,v] of Object.entries(SONG_KB)){
-    if(k.toLowerCase().trim()===name) return v;
-  }
-  for(const [k,v] of Object.entries(SONG_KB)){
-    if(name.length>6 && k.toLowerCase().startsWith(name.substring(0,7))) return v;
-    if(name.length>6 && name.startsWith(k.toLowerCase().substring(0,7))) return v;
-  }
-  return null;
+async function parseXLSX(buffer){
+  const bytes=new Uint8Array(buffer);
+  const files=await unzipBuffer(bytes);
+  const ssXml=files['xl/sharedStrings.xml']||'';
+  const strings=[]; const siMatches=ssXml.matchAll(/<si>.*?<\/si>/gs);
+  for(const m of siMatches){ const t=[...m[0].matchAll(/<t[^>]*>([^<]*)<\/t>/g)].map(x=>x[1]).join(''); strings.push(t.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"')); }
+  const wbXml=files['xl/workbook.xml']||''; const sheetXml=files['xl/worksheets/sheet1.xml']||'';
+  const rows=[]; const rowMatches=sheetXml.matchAll(/<row[^>]*>(.*?)<\/row>/gs);
+  for(const rowM of rowMatches){ const cellMap={}; const cm1=rowM[1].matchAll(/<c r="([A-Z]+)\d+"[^>]*t="s"[^>]*>.*?<v>(\d+)<\/v>/gs); for(const cm of cm1){ cellMap[cm[1]]=strings[parseInt(cm[2])]||''; } const cm2=rowM[1].matchAll(/<c r="([A-Z]+)\d+"(?![^>]*t=)[^>]*>.*?<v>([^<]*)<\/v>/gs); for(const cm of cm2){ if(!cellMap[cm[1]]) cellMap[cm[1]]=cm[2]; } if(Object.keys(cellMap).length) rows.push(cellMap); }
+  if(!rows.length) throw new Error('No data');
+  const allCols=[...new Set(rows.flatMap(r=>Object.keys(r)))].sort();
+  return rows.map(r=>allCols.map(c=>'"'+(r[c]||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+}
+async function unzipBuffer(bytes){ const files={}; const view=new DataView(bytes.buffer); let offset=0;
+  while(offset<bytes.length-4){ const sig=view.getUint32(offset,true); if(sig!==0x04034b50) break;
+    const compression=view.getUint16(offset+8,true); const compSize=view.getUint32(offset+18,true); const uncompSize=view.getUint32(offset+22,true); const nameLen=view.getUint16(offset+26,true); const extraLen=view.getUint16(offset+28,true);
+    const name=new TextDecoder().decode(bytes.slice(offset+30,offset+30+nameLen)); const dataStart=offset+30+nameLen+extraLen; const data=bytes.slice(dataStart,dataStart+compSize);
+    if(compression===0){ files[name]=new TextDecoder('utf-8').decode(data); }
+    else if(compression===8){ try{ const ds=new DecompressionStream('deflate-raw'); const writer=ds.writable.getWriter(); const reader=ds.readable.getReader(); writer.write(data); writer.close(); const chunks=[]; while(true){const{done,value}=await reader.read(); if(done)break; chunks.push(value);} const total=chunks.reduce((a,b)=>a+b.length,0); const result=new Uint8Array(total); let pos=0; for(const c of chunks){result.set(c,pos);pos+=c.length;} files[name]=new TextDecoder('utf-8').decode(result); }catch(e){} }
+    offset=dataStart+compSize; }
+  return files;
 }
 
-// Persistent show notes stored in localStorage
-const SHOW_NOTES_KEY = 'drsetlist_shownotes';
-let showNotes = {};
-try { showNotes = JSON.parse(localStorage.getItem(SHOW_NOTES_KEY)||'{}'); } catch(e){}
+// -- KB --
+function findKB(songName){ if(!songName) return null; const name=songName.toLowerCase().trim(); for(const [k,v] of Object.entries(SONG_KB)){ if(k.toLowerCase().trim()===name) return v; } for(const [k,v] of Object.entries(SONG_KB)){ if(name.length>6&&k.toLowerCase().startsWith(name.substring(0,7))) return v; if(name.length>6&&name.startsWith(k.toLowerCase().substring(0,7))) return v; } return null; }
+function getShowNote(s){ return showNotes[(s||'').toLowerCase().trim()]||''; }
+function saveShowNote(s,note){ showNotes[(s||'').toLowerCase().trim()]=note; localStorage.setItem(SHOW_NOTES_KEY,JSON.stringify(showNotes)); }
 
-function getShowNote(songName) {
-  const key = songName.toLowerCase().trim();
-  return showNotes[key] || '';
-}
-
-function saveShowNote(songName, note) {
-  const key = songName.toLowerCase().trim();
-  showNotes[key] = note;
-  localStorage.setItem(SHOW_NOTES_KEY, JSON.stringify(showNotes));
-}
-
-function suggestBanter(song, position, totalSongs, setIndex) {
-  const genre = (song['Genre']||'').toLowerCase();
-  const title = song['Song']||'';
-  const artist = song['Artist']||'';
-  const isPatriotic = !!(song['Patriotic']||'').trim();
-  const isFirst = position === 0;
-  const isLast = position === totalSongs - 1;
-  const isSetOpener = position === 0;
-  const pct = position / Math.max(totalSongs-1, 1);
-
-  // Check gig context
-  const atag = id => { const el=document.getElementById(id); return el?[...el.querySelectorAll('.tag.active')].map(t=>t.textContent.toLowerCase()):[];};
-  const eventTypes = atag('event-type-tags').join(' ');
-  const isMilitary = /military|ceremony/.test(eventTypes);
-  const isWedding = /wedding/.test(eventTypes);
-  const isConcert = /concert|festival/.test(eventTypes);
-
-  const rand = arr => arr[Math.floor(Math.random()*arr.length)];
-
-  let banter = '';
-
-  // OPENER banter
-  if(isSetOpener && setIndex === 0) {
-    const openers = [
-      "Good evening everybody, we are Downrange and we are SO glad to be here with you tonight!",
-      "How's everybody feeling tonight?! Let's GO!",
-      "Welcome everybody -- we are Downrange, and we're gonna have a great time tonight!"
-    ];
-    banter = rand(openers);
-    if(isMilitary) banter += " We are honored to be here with the finest men and women in the world.";
-  } else if(isSetOpener && setIndex > 0) {
-    banter = rand(["We're back! You ready?!", "Alright, who's ready for more?!", "Round " + (setIndex+1) + " -- let's go!"]);
-  }
-
-  // CLOSER banter
-  else if(isLast) {
-    const closers = [
-      "One more for ya -- make some noise!",
-      "Last one of the set -- give everything you got!",
-      "We'll be right back -- but first, one more!"
-    ];
-    banter = rand(closers);
-  }
-
-  // PATRIOTIC songs
-  else if(isPatriotic || /soldier|america|patriot|freedom|stripes|banner/i.test(title)) {
-    if(isMilitary) {
-      banter = rand([
-        "We want to take a moment to honor everyone in this room who has served or is currently serving. This one's for you.",
-        "To every veteran and active duty service member here tonight -- thank you. This song is for you.",
-        "This next song goes out to the brave men and women who protect our freedom every single day."
-      ]);
-    } else {
-      banter = "This next one is a tribute to all the men and women who serve our country.";
-    }
-  }
-
-  // WEDDING songs
-  else if(isWedding && /love|beautiful|better|forever|always/i.test(title)) {
-    banter = rand([
-      "This one goes out to the happy couple -- " + (document.getElementById('gig-name').value||"tonight's newlyweds") + "!",
-      "Grab your partner for this one!",
-      "All the couples on the floor for this one!"
-    ]);
-  }
-
-  // CROWD ENERGY by genre
-  else if(/funk|r&b|soul|motown/.test(genre)) {
-    banter = rand([
-      "I need everybody on their feet for this one!",
-      "Let me see you move! Clap with us -- 2 and 4!",
-      "This is a FEEL GOOD song, people. Let's hear you!"
-    ]);
-  }
-
-  else if(/classic rock|rock/.test(genre)) {
-    banter = rand([
-      "How many rock fans we got in here tonight?!",
-      "This one goes all the way back -- you know the words, sing it with us!",
-      "Let's hear some noise for this classic!"
-    ]);
-  }
-
-  else if(/country/.test(genre)) {
-    banter = rand([
-      "Any country fans in the house tonight?!",
-      "This one's for the country lovers -- you know who you are!",
-      "Put your hands up if you love country music!"
-    ]);
-  }
-
-  else if(/pop/.test(genre)) {
-    banter = rand([
-      "This next song you definitely know -- sing it with us!",
-      "Everybody knows this one -- let's hear you!",
-      "Come on, don't be shy -- sing along!"
-    ]);
-  }
-
-  // SINGER INTRO (mid-set, every ~5 songs)
-  if(position > 0 && position % 5 === 0 && !banter) {
-    const singers = (availableSingers.length ? availableSingers : []);
-    if(singers.length) {
-      const singer = singers[position % singers.length];
-      banter = rand([
-        `Give it up for the incredible ${singer}!`,
-        `Let's hear some love for ${singer}!`,
-        `${singer} everybody -- isn't she/he incredible?!`
-      ]);
-    }
-  }
-
-  return banter;
-}
-
-// -- ENERGY + GENRE --
-function getEnergyLevel(s){
-  const g=(s['Genre']||'').toLowerCase();
-  if(/hard rock|metal|punk|funk|dance|hip.?hop|rap|upbeat|rock & roll/.test(g)) return 3;
-  if(/rock|pop|r&b|country|motown|soul/.test(g)) return 2;
-  if(/ballad|jazz|acoustic|classical|slow|kids/.test(g)) return 1;
-  return 2;
-}
-function getGenreFamily(s){
-  const g=(s['Genre']||'').toLowerCase();
-  for(const [family,genres] of Object.entries(GENRE_FAMILIES)){
-    if(genres.some(x=>g.includes(x))) return family;
-  }
-  return 'other';
-}
-
-// -- GIG SCORE --
+// -- SCORING --
+function getEnergyLevel(s){ const g=(s['Genre']||'').toLowerCase(); if(/hard rock|metal|punk|funk|dance|hip.?hop|rap|upbeat/.test(g)) return 3; if(/rock|pop|r&b|country|motown|soul/.test(g)) return 2; if(/ballad|jazz|acoustic|classical|slow|kids/.test(g)) return 1; return 2; }
+function getGenreFamily(s){ const g=(s['Genre']||'').toLowerCase(); for(const [f,gs] of Object.entries(GENRE_FAMILIES)){ if(gs.some(x=>g.includes(x))) return f; } return 'other'; }
 function getGigScore(s){
-  let score=0;
-  const kb=findKB(s['Song']);
-  const playCount=kb?kb.play_count:0;
-  const genre=(s['Genre']||'').toLowerCase();
-  const isPatriotic=!!(s['Patriotic']||'').trim();
-  const hasHorns=!!(s['Horns']||'').trim();
-  const atag=id=>{const el=document.getElementById(id); return el?[...el.querySelectorAll('.tag.active')].map(t=>t.textContent.toLowerCase()):[];};
-  const eventTypes=atag('event-type-tags');
-  const climate=atag('climate-tags');
-  const ageRange=atag('age-tags');
-  const energy=atag('energy-tags');
+  let score=0; const kb=findKB(s['Song']); const plays=kb?kb.play_count:0;
+  const genre=(s['Genre']||'').toLowerCase(); const isPat=!!(s['Patriotic']||'').trim(); const hasHorns=!!(s['Horns']||'').trim();
+  const atag=id=>{ const el=document.getElementById(id); return el?[...el.querySelectorAll('.tag.active')].map(t=>t.textContent.toLowerCase()):[];};
+  const evTypes=atag('event-type-tags'); const climate=atag('climate-tags'); const energy=atag('energy-tags');
   const notes=(document.getElementById('gig-notes')||{value:''}).value.toLowerCase();
-
-  if(playCount>=15) score+=30;
-  else if(playCount>=8) score+=22;
-  else if(playCount>=4) score+=15;
-  else if(playCount>=2) score+=8;
-  else if(playCount===1) score+=3;
-
+  if(plays>=15) score+=30; else if(plays>=8) score+=22; else if(plays>=4) score+=15; else if(plays>=2) score+=8; else if(plays===1) score+=3;
   if(bandConfig.horns==='full'&&hasHorns) score+=8;
-  if(bandConfig.guitars==='cut'||bandConfig.keys==='cut'){
-    if(kb&&kb.cut_guitar_count>0) score+=10;
-    else if(kb&&kb.full_guitar_count>=2&&kb.cut_guitar_count===0) score-=20;
-  }
-  if(eventTypes.some(e=>e.includes('military')||e.includes('ceremony'))){
-    if(isPatriotic) score+=25;
-    if(genre.includes('country')) score+=10;
-    if(genre.includes('classic rock')) score+=8;
-  }
-  if(eventTypes.some(e=>e.includes('wedding'))){
-    if(!!(s['Wedding Band Vibes']||'').trim()) score+=20;
-    if(genre.includes('pop')||genre.includes('soul')) score+=8;
-  }
-  if(climate.some(c=>c.includes('conservative')||c.includes('patriotic'))){
-    if(isPatriotic) score+=20;
-    if(genre.includes('country')) score+=12;
-    if(genre.includes('classic rock')) score+=8;
-  }
-  if(climate.some(c=>c.includes('liberal')||c.includes('diverse'))){
-    if(genre.includes('r&b')||genre.includes('pop')||genre.includes('funk')) score+=10;
-  }
-  if(ageRange.some(a=>a.includes('young'))){
-    if(genre.includes('pop')||genre.includes('rock')) score+=8;
-    const year=parseInt(s['Year']||0); if(year>=2015) score+=6;
-  }
-  if(ageRange.some(a=>a.includes('30')||a.includes('older'))){
-    if(genre.includes('classic rock')||genre.includes('motown')||genre.includes('country')) score+=10;
-  }
-  if(energy.some(e=>e.includes('high'))){
-    if(genre.includes('rock')||genre.includes('funk')||genre.includes('pop')) score+=6;
-    if(genre.includes('ballad')) score-=10;
-  }
-  if(energy.some(e=>e.includes('chill')||e.includes('dinner'))){
-    if(genre.includes('ballad')||genre.includes('soul')) score+=8;
-    if(genre.includes('hard rock')) score-=12;
-  }
-  if(notes){
-    if(notes.includes('patriotic')&&isPatriotic) score+=15;
-    if(notes.includes('country')&&genre.includes('country')) score+=12;
-    if(notes.includes('motown')&&genre.includes('motown')) score+=12;
-  }
+  if(bandConfig.guitars==='cut'||bandConfig.keys==='cut'){ if(kb&&kb.cut_guitar_count>0) score+=10; else if(kb&&kb.full_guitar_count>=2&&kb.cut_guitar_count===0) score-=20; }
+  if(evTypes.some(e=>e.includes('military')||e.includes('ceremony'))){ if(isPat) score+=25; if(genre.includes('country')) score+=10; if(genre.includes('classic rock')) score+=8; }
+  if(evTypes.some(e=>e.includes('kids'))){ if(genre.includes('pop')||genre.includes('kids')) score+=15; if(genre.includes('r&b')) score+=8; if(genre.includes('hard rock')||genre.includes('metal')) score-=20; }
+  if(climate.some(c=>c.includes('military'))){ if(isPat) score+=20; if(genre.includes('country')) score+=10; }
+  if(energy.some(e=>e.includes('high'))){ if(genre.includes('rock')||genre.includes('funk')||genre.includes('pop')) score+=6; if(genre.includes('ballad')) score-=10; }
+  if(energy.some(e=>e.includes('chill')||e.includes('dinner'))){ if(genre.includes('ballad')||genre.includes('soul')) score+=8; if(genre.includes('hard rock')) score-=12; }
+  if(notes){ if(notes.includes('patriotic')&&isPat) score+=15; if(notes.includes('country')&&genre.includes('country')) score+=12; }
   return score;
 }
+function getRole(s){ const kb=findKB(s['Song']); return kb&&kb.historical_role?kb.historical_role:'MID'; }
 
 // -- LIBRARY --
 function renderLibrary(){
@@ -1072,127 +685,89 @@ function renderLibrary(){
   const hornsF=document.getElementById('filter-horns').value;
   const flag=document.getElementById('filter-flags').value;
   const inRs=new Set(runsheet.filter(r=>r.type==='song').map(r=>r.song['Song'].toLowerCase().trim()));
+  const desk=window.innerWidth>=768;
 
   let filtered=allSongs.filter(s=>{
-    if(search){const t=(s['Song']||'')+(s['Artist']||'')+(s['Genre']||''); if(!t.toLowerCase().includes(search)) return false;}
-    if(singer){const v=(s[singer]||'').toUpperCase(); if(v!=='X'&&v!=='X?') return false;}
+    if(search){ const t=(s['Song']||'')+(s['Artist']||'')+(s['Genre']||''); if(!t.toLowerCase().includes(search)) return false; }
+    if(singer){ const v=(s[singer]||'').toUpperCase(); if(v!=='X'&&v!=='X?') return false; }
     if(genre&&!(s['Genre']||'').includes(genre)) return false;
     if(hornsF==='has_horns'&&!(s['Horns']||'').trim()) return false;
     if(hornsF==='no_horns'&&(s['Horns']||'').trim()) return false;
-    if(flag==='cut_safe'){const kb=findKB(s['Song']); if(!kb||kb.cut_guitar_count===0) return false;}
-    else if(flag){const v=(s[flag]||'').trim().toUpperCase(); if(!v||v==='N/A') return false;}
+    if(flag==='cut_safe'){ const kb=findKB(s['Song']); if(!kb||kb.cut_guitar_count===0) return false; }
+    else if(flag){ const v=(s[flag]||'').trim().toUpperCase(); if(!v||v==='N/A') return false; }
     return true;
   });
 
-  if(!search&&!singer&&!genre&&!flag)
-    filtered.sort((a,b)=>getGigScore(b)-getGigScore(a));
+  if(!search&&!singer&&!genre&&!flag) filtered.sort((a,b)=>getGigScore(b)-getGigScore(a));
 
   const list=document.getElementById('song-list');
-  if(!filtered.length){list.innerHTML='<div class="empty-msg">No songs match.</div>'; return;}
+  if(!filtered.length){ list.innerHTML='<div class="empty-msg">No songs match.</div>'; return; }
 
   list.innerHTML=filtered.map(s=>{
-    const kb=findKB(s['Song']);
-    const score=getGigScore(s);
+    const kb=findKB(s['Song']); const score=getGigScore(s);
     const inSet=inRs.has(s['Song'].toLowerCase().trim());
     const hasHorns=!!(s['Horns']||'').trim();
-
-    // Primary singer from KB
-    const primary=kb&&kb.primary_singer?kb.primary_singer:'';
-
-    let histBadge='';
-    let rowWarn='';
+    const primary=kb&&kb.primary_singer?kb.primary_singer.split(' ')[0]:'';
+    let histBadge=''; let rowWarn='';
     if(kb){
       const plays=kb.play_count;
-      const pct=Math.round(100*kb.cut_guitar_count/plays);
-      if((bandConfig.guitars==='cut'||bandConfig.keys==='cut')&&kb.cut_guitar_count===0&&kb.full_guitar_count>=2)
-        rowWarn=' style="background:rgba(224,85,85,0.06)"';
-      if(bandConfig.horns==='none'&&hasHorns&&kb.with_horns_count>0&&kb.without_horns_count===0)
-        rowWarn=' style="background:rgba(224,85,85,0.06)"';
-      const bs=score>=40?'style="background:rgba(76,175,130,0.3);color:#4caf82;font-weight:800"':
-               score>=20?'style="background:rgba(240,192,64,0.2);color:#f0c040"':'';
-      histBadge=`<span class="hist-badge" ${bs} title="${plays} plays . score:${score}${primary?' . '+primary:''}">${plays}</span>`;
-    } else {
-      histBadge=`<span class="hist-badge new" title="No history . score:${score}">NEW</span>`;
-    }
+      if((bandConfig.guitars==='cut'||bandConfig.keys==='cut')&&kb.cut_guitar_count===0&&kb.full_guitar_count>=2) rowWarn=' style="background:rgba(224,85,85,0.06)"';
+      if(bandConfig.horns==='none'&&hasHorns&&kb.without_horns_count===0) rowWarn=' style="background:rgba(224,85,85,0.06)"';
+      const bs=score>=40?'style="background:rgba(76,175,130,0.3);color:#4caf82;font-weight:800"':score>=20?'style="background:rgba(240,192,64,0.2);color:#f0c040"':'';
+      histBadge='<span class="hist-badge" '+bs+' title="'+plays+' plays">'+plays+'x</span>';
+    } else { histBadge='<span class="hist-badge new-song">NEW</span>'; }
 
     const enc=encodeURIComponent(JSON.stringify(s));
-    const primarySinger = kb&&kb.primary_singer ? kb.primary_singer.split(' ')[0] : '';
-    const isMobile = window.innerWidth < 768;
-    const subLine = isMobile
-      ? '<div style="font-size:10px;color:var(--muted);margin-top:1px">'+esc(s['Artist']||'')+(primarySinger?' . <span style="color:var(--green)">'+primarySinger+'*</span>':'')+'</div>'
-      : '';
-    const artistCol = isMobile ? '' : '<span class="meta" title="'+esc(s['Artist'])+'">'+esc(s['Artist']||'--')+'</span>';
-    const histCol = isMobile ? '' : histBadge;
-    const addedCls = inSet ? ' added' : '';
+    const titleCell='<div><div class="song-title" title="'+esc(s['Song'])+'">'+esc(s['Song'])+(hasHorns?'<span class="horn-star">*</span>':'')+'</div>'+(!desk?'<div class="song-sub">'+esc(s['Artist']||'')+(primary?' &middot; <span style="color:var(--green)">'+primary+'</span>':'')+'</div>':'')+'</div>';
+    const artistCell=desk?'<span class="meta" title="'+esc(s['Artist'])+'">'+esc(s['Artist']||'--')+'</span>':'';
+    const catCell=desk?'<span class="meta">'+esc(s['Catalog #']||'--')+'</span>':'';
+    const histCell=desk?histBadge:'';
+    const addCls=inSet?' style="background:var(--accent-dim);border-color:var(--accent);color:var(--accent)"':'';
+
     return '<div class="song-row"'+rowWarn+'>'
-      +'<div>'
-      +'<div class="title" title="'+esc(s['Song'])+'">'+esc(s['Song'])+(hasHorns?'<span class="horn-star">*</span>':'')+'</div>'
-      +subLine
-      +'</div>'
-      +'<span class="meta">'+(esc(s['Key'])||'--')+'</span>'
-      +artistCol
+      +titleCell
+      +'<span class="meta">'+esc(s['Key']||'--')+'</span>'
       +'<span class="genre-badge" title="'+esc(s['Genre'])+'">'+esc((s['Genre']||'').split(',')[0].trim()||'--')+'</span>'
-      +histCol
-      +'<button class="add-btn'+addedCls+'" onclick="addSong(''+enc+'')" title="Add">+</button>'
+      +artistCell+histCell+catCell
+      +'<button class="add-btn"'+addCls+' onclick="addSong(''+enc+'')" title="Add">+</button>'
       +'</div>';
   }).join('');
 }
 
-// -- ADD SONG (duplicate protected) --
+// -- ADD SONG --
 function addSong(enc){
   const song=JSON.parse(decodeURIComponent(enc));
   const key=song['Song'].toLowerCase().trim();
-  const already=runsheet.some(r=>r.type==='song'&&r.song['Song'].toLowerCase().trim()===key);
-  if(already){
-    document.querySelectorAll('.run-title').forEach(el=>{
-      if(el.textContent.trim()===song['Song']){
-        el.closest('.run-song').style.background='rgba(240,192,64,0.15)';
-        setTimeout(()=>el.closest('.run-song').style.background='',800);
-      }
-    });
+  if(runsheet.some(r=>r.type==='song'&&r.song['Song'].toLowerCase().trim()===key)){
+    document.querySelectorAll('.run-title').forEach(el=>{ if(el.textContent.trim()===song['Song']){ el.closest('.run-song').style.background='rgba(240,192,64,0.15)'; setTimeout(()=>el.closest('.run-song').style.background='',800); }});
     return;
   }
-  // Default singer from KB
-  const kb=findKB(song['Song']);
-  const defaultSinger=kb&&kb.primary_singer&&availableSingers.includes(kb.primary_singer)
-    ? [kb.primary_singer]
-    : availableSingers.filter(s=>{const v=(song[s]||'').toUpperCase(); return v==='X'||v==='X?';}).slice(0,1);
-  const si=runsheet.filter(r=>r.type==='song').length>0
-    ? runsheet.filter(r=>r.type==='song').slice(-1)[0].setIndex : 0;
-  const savedNote=getShowNote(song['Song']);
-  runsheet.push({type:'song',song,setIndex:si,singers:defaultSinger,singer:defaultSinger[0]||'',flowNote:savedNote,aiNote:''});
+  const kb=findKB(song['Song']); const primary=kb&&kb.primary_singer;
+  const defaultSinger=primary&&availableSingers.includes(primary)?[primary]:availableSingers.filter(s=>{const v=(song[s]||'').toUpperCase();return v==='X'||v==='X?';}).slice(0,1);
+  const si=runsheet.filter(r=>r.type==='song').length>0?runsheet.filter(r=>r.type==='song').slice(-1)[0].setIndex:0;
+  const saved=getShowNote(song['Song']);
+  runsheet.push({type:'song',song,setIndex:si,singers:defaultSinger,singer:defaultSinger[0]||'',flowNote:saved,aiNote:''});
   renderRunsheet(); renderLibrary();
 }
-
-function removeItem(i){runsheet.splice(i,1); renderRunsheet(); renderLibrary();}
-function clearRunsheet(){if(runsheet.length&&!confirm('Clear the runsheet?')) return; runsheet=[]; encoreSelected=null; renderRunsheet(); renderLibrary();}
-function getCurrentSetIndex(){
-  const last=runsheet.filter(r=>r.type==='song').slice(-1)[0];
-  return last?last.setIndex:0;
-}
+function removeItem(i){ runsheet.splice(i,1); renderRunsheet(); renderLibrary(); }
+function clearRunsheet(){ if(runsheet.length&&!confirm('Clear the setlist?')) return; runsheet=[]; encoreSelected=null; renderRunsheet(); renderLibrary(); }
 
 // -- BUILD SETLIST --
 function buildSetlist(){
-  if(!allSongs.length){alert('Load your song sheet first!'); return;}
+  if(!allSongs.length){ alert('Load your song sheet first!'); return; }
   const totalMins=sets.reduce((s,set)=>s+set.minutes,0);
   const approxSongs=Math.max(8,Math.round(totalMins/3.5));
   const usedSongs=new Set();
   const PATRIOTIC_CAP=2;
-  const isPatriotic=s=>!!(s['Patriotic']||'').trim()||/america|soldier|patriot|flag|freedom|military|war|stripes/i.test(s['Song']);
-  const isHeavy=s=>/ballad|power ballad|country ballad/i.test(s['Genre']||'')||/letters from war|travelin|if i die|golden/i.test(s['Song']);
-  const getRole=s=>{const kb=findKB(s['Song']); return kb&&kb.historical_role?kb.historical_role:'MID';};
+  const isPat=s=>!!(s['Patriotic']||'').trim()||/america|soldier|patriot|flag|freedom|military|war|stripes/i.test(s['Song']);
+  const isHeavy=s=>/ballad|power ballad/i.test(s['Genre']||'')||/letters from war|travelin|if i die|golden/i.test(s['Song']);
 
   const eligible=allSongs.filter(s=>{
     if(bandConfig.horns==='none'&&(s['Horns']||'').trim()) return false;
-    if(bandConfig.guitars==='cut'||bandConfig.keys==='cut'){
-      const kb=findKB(s['Song']); if(kb&&kb.full_guitar_count>=2&&kb.cut_guitar_count===0) return false;
-    }
-    if(availableSingers.length){
-      const ok=availableSingers.some(singer=>{const v=(s[singer]||'').toUpperCase(); return v==='X'||v==='X?';});
-      if(!ok) return false;
-    }
+    if(bandConfig.guitars==='cut'||bandConfig.keys==='cut'){ const kb=findKB(s['Song']); if(kb&&kb.full_guitar_count>=2&&kb.cut_guitar_count===0) return false; }
+    if(availableSingers.length){ const ok=availableSingers.some(sg=>{const v=(s[sg]||'').toUpperCase();return v==='X'||v==='X?';}); if(!ok) return false; }
     return true;
-  }).map(s=>({song:s,score:getGigScore(s),energy:getEnergyLevel(s),family:getGenreFamily(s),role:getRole(s),pat:isPatriotic(s),heavy:isHeavy(s)}))
+  }).map(s=>({song:s,score:getGigScore(s),energy:getEnergyLevel(s),family:getGenreFamily(s),role:getRole(s),pat:isPat(s),heavy:isHeavy(s),kb:findKB(s['Song'])}))
     .sort((a,b)=>b.score-a.score);
 
   const songsPerSet=sets.map(set=>Math.round(approxSongs*set.minutes/totalMins));
@@ -1200,66 +775,53 @@ function buildSetlist(){
 
   sets.forEach((set,si)=>{
     const count=Math.max(4,songsPerSet[si]);
-    const singerCount={};
-    const maxPS=Math.ceil(count/Math.max(availableSingers.length,1));
-    let patCount=0;
-    const usedThemes=new Set();
-    const picked=[];
+    const singerCount={}; const maxPS=Math.ceil(count/Math.max(availableSingers.length,1));
+    let patCount=0; const usedThemes=new Set(); const picked=[];
 
-    const avail=()=>eligible.filter(x=>!usedSongs.has(x.song['Song'].toLowerCase()));
+    const avail=()=>eligible.filter(x=>!usedSongs.has(x.song['Song'].toLowerCase().trim()));
     const opener=avail().find(x=>x.role==='OPENER')||avail().find(x=>x.energy>=2);
-    const closer=avail().filter(x=>x.role==='CLOSER')[0]||avail().filter(x=>x.energy>=2).slice(-1)[0];
+    const closerPool=avail().filter(x=>x.role==='CLOSER');
+    const closer=closerPool.length?closerPool.sort((a,b)=>((b.kb&&b.kb.avg_position)||0)-((a.kb&&a.kb.avg_position)||0))[0]:null;
 
-    if(opener){
-      const sg=assignSinger(opener.song,singerCount,maxPS);
-      if(sg){picked.push({...opener,singer:sg});usedSongs.add(opener.song['Song'].toLowerCase());singerCount[sg]=(singerCount[sg]||0)+1;}
-    }
+    if(opener){ const sg=assignSinger(opener.song,singerCount,maxPS); if(sg){picked.push({...opener,singer:sg});usedSongs.add(opener.song['Song'].toLowerCase().trim());singerCount[sg]=(singerCount[sg]||0)+1;}}
 
     let heavyRun=0;
     for(const item of avail()){
       if(picked.length>=count-1) break;
-      if(item===closer) continue;
+      if(closer&&item===closer) continue;
       if(item.pat&&patCount>=PATRIOTIC_CAP) continue;
       const theme=/america/i.test(item.song['Song'])?'america':/soldier|military/i.test(item.song['Song'])?'soldier':/patriot|flag/i.test(item.song['Song'])?'patriot':'';
       if(theme&&usedThemes.has(theme)) continue;
       if(item.heavy&&heavyRun>=2) continue;
-      const sg=assignSinger(item.song,singerCount,maxPS);
-      if(!sg) continue;
-      picked.push({...item,singer:sg});
-      usedSongs.add(item.song['Song'].toLowerCase());
+      const sg=assignSinger(item.song,singerCount,maxPS); if(!sg) continue;
+      picked.push({...item,singer:sg}); usedSongs.add(item.song['Song'].toLowerCase().trim());
       singerCount[sg]=(singerCount[sg]||0)+1;
-      if(item.pat) patCount++;
-      if(theme) usedThemes.add(theme);
+      if(item.pat) patCount++; if(theme) usedThemes.add(theme);
       heavyRun=item.heavy?heavyRun+1:0;
     }
 
-    if(closer&&!usedSongs.has(closer.song['Song'].toLowerCase())){
-      const sg=assignSinger(closer.song,singerCount,maxPS+2);
-      if(sg){picked.push({...closer,singer:sg});usedSongs.add(closer.song['Song'].toLowerCase());}
-    }
+    if(closer&&!usedSongs.has(closer.song['Song'].toLowerCase().trim())){ const sg=assignSinger(closer.song,singerCount,maxPS+2); if(sg){picked.push({...closer,singer:sg});usedSongs.add(closer.song['Song'].toLowerCase().trim());}}
 
     arrangeWithFlow(picked).forEach(item=>{
-      runsheet.push({type:'song',song:item.song,setIndex:si,singers:[item.singer],singer:item.singer,flowNote:'',aiNote:''});
+      const saved=getShowNote(item.song['Song']);
+      runsheet.push({type:'song',song:item.song,setIndex:si,singers:[item.singer],singer:item.singer,flowNote:saved,aiNote:''});
     });
     if(si<sets.length-1) runsheet.push({type:'break',label:'Break',minutes:15});
   });
 
   const gigName=document.getElementById('gig-name').value;
   if(gigName) document.getElementById('runsheet-name').value=gigName.toUpperCase();
-  checkKeyLocks();
-  renderRunsheet(); renderLibrary(); updatePrintHeader();
+  checkKeyLocks(); renderRunsheet(); renderLibrary(); updatePrintHeader();
   document.getElementById('encore-bar').style.display='block';
-  document.getElementById('showflow-bar').style.display='block';
   document.getElementById('step-4').classList.add('complete');
   document.getElementById('chk-4').textContent='v';
-  setStatus('Built ' + runsheet.filter(r=>r.type==='song').length + ' songs - enriching with Last.fm...');
+  setStatus('Built '+runsheet.filter(r=>r.type==='song').length+' songs');
   showTab('runsheet');
   enrichWithLastFm();
 }
 
 function assignSinger(song,singerCount,maxPS){
-  const kb=findKB(song['Song']);
-  const primary=kb&&kb.primary_singer;
+  const kb=findKB(song['Song']); const primary=kb&&kb.primary_singer;
   const pool=(availableSingers.length?availableSingers:SINGER_COLS).filter(s=>{const v=(song[s]||'').toUpperCase();return v==='X'||v==='X?';});
   if(!pool.length) return null;
   if(primary&&pool.includes(primary)&&(singerCount[primary]||0)<maxPS) return primary;
@@ -1270,375 +832,163 @@ function assignSinger(song,singerCount,maxPS){
 function arrangeWithFlow(picked){
   if(!picked.length) return picked;
   const opener=picked.find(x=>x.role==='OPENER')||picked[0];
-  // Strongest closer goes last -- never let a CLOSER song end up in middle
-  const closerCandidates=picked.filter(x=>x.role==='CLOSER');
-  const closer=closerCandidates.length
-    ? closerCandidates.sort((a,b)=>(b.kb&&b.kb.avg_position||0)-(a.kb&&a.kb.avg_position||0))[0]
-    : picked[picked.length-1];
+  const closerCands=picked.filter(x=>x.role==='CLOSER');
+  const closer=closerCands.length?closerCands.sort((a,b)=>((b.kb&&b.kb.avg_position)||0)-((a.kb&&a.kb.avg_position)||0))[0]:picked[picked.length-1];
   const middle=picked.filter(x=>x!==opener&&x!==closer);
-  const arranged=[];
-  let pool=[...middle];
-  let lastFamily=opener?opener.family:'pop';
+  const arranged=[]; let pool=[...middle]; let lastFamily=opener?opener.family:'pop';
   while(pool.length){
     const sameCount=arranged.filter(x=>x.family===lastFamily).length;
     const same=pool.filter(x=>x.family===lastFamily);
     const compat=pool.filter(x=>x.family!==lastFamily&&(FAMILY_COMPAT[lastFamily]||[]).includes(x.family));
-    let next;
-    if(same.length&&sameCount<3) next=same[0];
-    else if(compat.length) next=compat[0];
-    else next=pool[0];
+    let next; if(same.length&&sameCount<3) next=same[0]; else if(compat.length) next=compat[0]; else next=pool[0];
     arranged.push(next); lastFamily=next.family; pool=pool.filter(x=>x!==next);
   }
   return [opener,...arranged,closer].filter(Boolean);
 }
 
-const LASTFM_CACHE_KEY='drsetlist_lfm';
-let lastfmCache={};
-try{lastfmCache=JSON.parse(localStorage.getItem(LASTFM_CACHE_KEY)||'{}');}catch(e){}
-
-async function enrichWithLastFm(){
-  const songs=runsheet.filter(r=>r.type==='song');
-  let done=0;
-  for(const item of songs){
-    const s=item.song;
-    const key=(s['Song']+'|'+(s['Artist']||'')).toLowerCase().replace(/[^a-z0-9|]/g,'');
-    if(lastfmCache[key]){applyLastFm(s['Song'],lastfmCache[key]);done++;continue;}
-    try{
-      const url='https://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=f5574108495b5bcea4f3f4e52c8a2f5e&artist='+encodeURIComponent(s['Artist']||'')+'&track='+encodeURIComponent(s['Song']||'')+'&format=json';
-      const res=await fetch(url);
-      if(!res.ok) continue;
-      const data=await res.json();
-      if(data.track){
-        const info={playcount:parseInt(data.track.playcount||0),listeners:parseInt(data.track.listeners||0),tags:(data.track.toptags?.tag||[]).map(t=>t.name.toLowerCase())};
-        lastfmCache[key]=info;
-        applyLastFm(s['Song'],info);
-        done++;
-        if(done%5===0) localStorage.setItem(LASTFM_CACHE_KEY,JSON.stringify(lastfmCache));
-      }
-    }catch(e){}
-    await new Promise(r=>setTimeout(r,250));
-    setStatus('Last.fm: '+done+'/'+songs.length+' songs');
-  }
-  localStorage.setItem(LASTFM_CACHE_KEY,JSON.stringify(lastfmCache));
-  setStatus('Last.fm enrichment complete ('+done+'/'+songs.length+')');
-  renderRunsheet();
-}
-
-function applyLastFm(songName,info){
-  const kb=findKB(songName);
-  if(!kb) return;
-  kb.lastfm_plays=info.playcount;
-  kb.lastfm_tags=info.tags||[];
-  const closerTags=['anthem','singalong','epic','classic','crowd pleaser','dance','party'];
-  const balladTags=['ballad','slow','romantic','emotional','sad'];
-  if(!kb.historical_role){
-    if(info.tags&&info.tags.some(t=>closerTags.includes(t))) kb.lastfm_role='CLOSER';
-    else if(info.tags&&info.tags.some(t=>balladTags.includes(t))) kb.lastfm_role='BALLAD';
-  }
-  if(info.playcount>50000000&&!kb.historical_role) kb.lastfm_role='CLOSER';
-}
-
 // -- KEY LOCK --
-function checkKeyLocks(){
-  runsheet.forEach(r=>{
-    if(r.type!=='song') return;
-    const k=r.song['Key']||'';
-    r.needsKeyLock=/or|\/|\|/i.test(k)&&k.length>2;
-    r.lockedKey=r.lockedKey||'';
-  });
-}
-function lockKey(i,val){
-  runsheet[i].lockedKey=val;
-  runsheet[i].needsKeyLock=false;
-  renderRunsheet();
-}
-function parseKeyOptions(keyStr){
-  return keyStr.split(/\s*(?:or|\/|\|)\s*/i).map(k=>k.trim()).filter(Boolean);
-}
+function checkKeyLocks(){ runsheet.forEach(r=>{ if(r.type!=='song') return; const k=r.song['Key']||''; r.needsKeyLock=/or|\/|\|/i.test(k)&&k.length>2; r.lockedKey=r.lockedKey||''; }); }
+function lockKey(i,val){ runsheet[i].lockedKey=val; runsheet[i].needsKeyLock=false; renderRunsheet(); }
+function parseKeyOptions(k){ return k.split(/\s*(?:or|\/|\|)\s*/i).map(x=>x.trim()).filter(Boolean); }
 
 // -- RENDER RUNSHEET --
 function renderRunsheet(){
   const el=document.getElementById('rs-body');
   const songs=runsheet.filter(r=>r.type==='song');
-  const totalSecs=songs.reduce((s,r)=>{const t=parseFloat(r.song['Time']); return s+(isNaN(t)?0:t*24*60*60);},0);
+  const totalSecs=songs.reduce((s,r)=>{const t=parseFloat(r.song['Time']);return s+(isNaN(t)?0:t*24*60*60);},0);
   const mins=Math.round(totalSecs/60);
-  document.getElementById('rs-meta').textContent=`${songs.length} songs${mins>0?' . ~'+mins+' min':''}`;
+  document.getElementById('rs-meta').textContent=songs.length+' songs'+(mins>0?' -- ~'+mins+' min':'');
+  if(!runsheet.length){ el.innerHTML='<div class="empty-rs"><div class="icon">DR</div><p>Complete the wizard to build your setlist</p></div>'; return; }
 
-  if(!runsheet.length){
-    el.innerHTML='<div class="empty-rs"><div class="icon"></div><p>Complete the wizard to build your setlist</p></div>';
-    return;
-  }
-
-  let html=''; let overallNum=0; const setsSeen=new Set();
+  let html=''; let num=0; const setsSeen=new Set();
   const setData={};
-  runsheet.forEach(r=>{
-    if(r.type!=='song') return;
-    if(!setData[r.setIndex]) setData[r.setIndex]={count:0,secs:0};
-    setData[r.setIndex].count++;
-    const t=parseFloat(r.song['Time']); if(!isNaN(t)) setData[r.setIndex].secs+=t*24*60*60;
-  });
+  runsheet.forEach(r=>{ if(r.type!=='song') return; if(!setData[r.setIndex]) setData[r.setIndex]={count:0,secs:0}; setData[r.setIndex].count++; const t=parseFloat(r.song['Time']); if(!isNaN(t)) setData[r.setIndex].secs+=t*24*60*60; });
 
   runsheet.forEach((item,i)=>{
-    if(item.type==='break'){
-      html+=`<div class="break-block">
-        <span class="break-label">-- BREAK --</span>
-        <span class="break-mins">${item.minutes} min</span>
-        <button class="icon-btn" onclick="removeItem(${i})" style="margin-left:auto"></button>
-      </div>`; return;
-    }
+    if(item.type==='break'){ html+='<div class="break-block"><span class="break-label">-- BREAK --</span><span style="font-size:10px;color:var(--muted);font-family:JetBrains Mono,monospace">'+item.minutes+' min</span><button class="icon-btn" onclick="removeItem('+i+')" style="margin-left:auto">x</button></div>'; return; }
     const si=item.setIndex;
-    if(!setsSeen.has(si)){
-      setsSeen.add(si);
-      const sd=setData[si]||{count:0,secs:0};
-      const setObj=sets[si]||{name:`Set ${si+1}`,minutes:45};
-      const smins=Math.round(sd.secs/60);
-      const over=smins>setObj.minutes?` ! ${smins-setObj.minutes}m over`:'';
-      html+=`<div class="set-block-header">
-        <span class="set-block-title">${esc(setObj.name)}</span>
-        <span class="set-block-meta">${sd.count} songs . ${smins}/${setObj.minutes}min${over}</span>
-      </div>`;
-    }
-    overallNum++;
-    const s=item.song;
-    const hasHorns=!!(s['Horns']||'').trim();
-    const key=item.lockedKey||(item.needsKeyLock?'':s['Key']||'');
-    const rawKey=s['Key']||'';
-    const needsLock=item.needsKeyLock&&!item.lockedKey;
-
-    // Key display -- lock selector if ambiguous
+    if(!setsSeen.has(si)){ setsSeen.add(si); const sd=setData[si]||{count:0,secs:0}; const setObj=sets[si]||{name:'Set '+(si+1),minutes:45}; const smins=Math.round(sd.secs/60); const over=smins>setObj.minutes?' -- '+( smins-setObj.minutes)+'m over':''; html+='<div class="set-block-header"><span class="set-block-title">'+esc(setObj.name)+'</span><span class="set-block-meta">'+sd.count+' songs &middot; '+smins+'/'+setObj.minutes+'min'+over+'</span></div>'; }
+    num++;
+    const s=item.song; const hasHorns=!!(s['Horns']||'').trim();
+    const key=item.lockedKey||(item.needsKeyLock?'':s['Key']||''); const rawKey=s['Key']||''; const needsLock=item.needsKeyLock&&!item.lockedKey;
     let keyDisplay='';
-    if(needsLock){
-      const opts=parseKeyOptions(rawKey);
-      const optHtml=opts.map(k=>'<option value="'+k+'">'+k+'</option>').join('');
-      keyDisplay='<select class="key-lock-sel needs-lock" onchange="lockKey('+i+',this.value)" title="Select key"><option value="">KEY?</option>'+optHtml+'</select>';
-    } else {
-      const keyColor=key?'var(--accent)':'var(--muted)';
-      keyDisplay='<span style="color:'+keyColor+';font-size:10px;font-family:JetBrains Mono,monospace">'+(key||'--')+'</span>';
-    }
+    if(needsLock){ const opts=parseKeyOptions(rawKey); keyDisplay='<select class="key-sel" onchange="lockKey('+i+',this.value)"><option value="">KEY?</option>'+opts.map(k=>'<option value="'+k+'">'+k+'</option>').join('')+'</select>'; }
+    else{ keyDisplay='<span style="color:'+(key?'var(--accent)':'var(--muted)')+';font-size:10px;font-family:JetBrains Mono,monospace">'+(key||'--')+'</span>'; }
 
-    // Singer buttons -- show primary indicator
-    const kb=findKB(s['Song']);
-    const primary=kb&&kb.primary_singer;
+    const kb=findKB(s['Song']); const primary=kb&&kb.primary_singer;
     const assigned=item.singers&&item.singers.length?item.singers:(item.singer?[item.singer]:[]);
-    const singerPool=(availableSingers.length?availableSingers:SINGER_COLS)
-      .filter(singer=>{const v=(s[singer]||'').toUpperCase(); return v==='X'||v==='X?';});
-    const singerBtns=singerPool.map(function(singer){
-      const isActive=assigned.includes(singer);
-      const isPrimary=singer===primary;
-      const cls='singer-btn'+(isActive?' active':'');
-      const lbl=singer.split(' ')[0]+(isPrimary?'*':'');
-      return '<button class="'+cls+'" onclick="toggleSinger('+i+',''+singer+'')" title="'+(isPrimary?'Primary singer':'')+'">'+lbl+'</button>';
-    }).join('');
+    const singerPool=(availableSingers.length?availableSingers:SINGER_COLS).filter(sg=>{const v=(s[sg]||'').toUpperCase();return v==='X'||v==='X?';});
+    const singerBtns=singerPool.map(sg=>'<button class="singer-btn'+(assigned.includes(sg)?' active':'')+'" onclick="toggleSinger('+i+',''+sg+'')">'+(sg.split(' ')[0])+(sg===primary?'*':'')+'</button>').join('');
+    const detail=[s['Artist'],assigned.join(' / ')].filter(Boolean).join(' &middot; ');
+    const noteVal=item.flowNote||'';
 
-    const detail=[s['Artist'],assigned.join(' / ')].filter(Boolean).join(' . ');
-    const noteVal=item.flowNote||item.aiNote||'';
-    const noteClass=item.aiNote&&!item.flowNote?'ai-gen':'';
-
-    html+=`<div class="run-item">
-      <div class="run-song" draggable="true"
-        ondragstart="dragStart(${i})" ondragover="dragOver(event,${i})"
-        ondrop="drop(event,${i})" ondragleave="dragLeave(event)">
-        <span class="run-num">${String(overallNum).padStart(2,'0')}</span>
-        <div style="flex:1;min-width:0">
-          <div class="run-title">${esc(s['Song'])}${hasHorns?'<span class="horn-star">*</span>':''} ${keyDisplay}</div>
-          <div class="run-detail">${esc(detail)}</div>
-          <div class="singer-assign">${singerBtns}</div>
-        </div>
-        <button class="run-remove" onclick="removeItem(${i})"></button>
-      </div>
-      <div class="flow-note">
-        <textarea class="${noteClass}" rows="2" placeholder="Add banter, cues, or crowd direction... (saves permanently)"
-          oninput="runsheet[${i}].flowNote=this.value;saveShowNote(runsheet[${i}].song['Song'],this.value);this.className='';autoResize(this)"
-        >${esc(noteVal)}</textarea>
-      </div>
-    </div>`;
+    html+='<div class="run-item">'
+      +'<div class="run-song" draggable="true" ondragstart="dragStart('+i+')" ondragover="dragOver(event,'+i+')" ondrop="drop(event,'+i+')" ondragleave="dragLeave(event)">'
+      +'<span class="run-num">'+String(num).padStart(2,'0')+'</span>'
+      +'<div style="flex:1;min-width:0"><div class="run-title">'+esc(s['Song'])+(hasHorns?'<span class="horn-star">*</span>':'')+' '+keyDisplay+'</div>'
+      +'<div class="run-detail">'+detail+'</div>'
+      +'<div class="singer-assign">'+singerBtns+'</div></div>'
+      +'<button class="run-remove" onclick="removeItem('+i+')">x</button></div>'
+      +'<div class="flow-note"><textarea rows="2" placeholder="Show note / banter (saves automatically)" oninput="runsheet['+i+'].flowNote=this.value;saveShowNote(runsheet['+i+'].song['Song'],this.value);autoResize(this)">'+esc(noteVal)+'</textarea></div>'
+      +'</div>';
   });
+  el.innerHTML=html; el.querySelectorAll('textarea').forEach(autoResize);
+}
+function autoResize(ta){ ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; }
 
-  el.innerHTML=html;
-  el.querySelectorAll('textarea').forEach(autoResize);
-}
-function autoResize(ta){ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';}
+// -- SINGER TOGGLE --
+function toggleSinger(i,singer){ const item=runsheet[i]; if(!item||item.type!=='song') return; if(!item.singers) item.singers=[item.singer||'']; if(item.singers.includes(singer)) item.singers=item.singers.filter(s=>s!==singer); else item.singers.push(singer); if(!item.singers.length) item.singers=[singer]; item.singer=item.singers.join(' / '); renderRunsheet(); }
 
-// -- TOGGLE SINGER --
-function toggleSinger(i,singer){
-  const item=runsheet[i]; if(!item||item.type!=='song') return;
-  if(!item.singers) item.singers=[item.singer||''];
-  if(item.singers.includes(singer)) item.singers=item.singers.filter(s=>s!==singer);
-  else item.singers.push(singer);
-  if(!item.singers.length) item.singers=[singer];
-  item.singer=item.singers.join(' / ');
-  renderRunsheet();
-}
-
-// -- DRAG & DROP --
-function dragStart(i){dragIndex=i;}
-function dragOver(e,i){
-  e.preventDefault();
-  document.querySelectorAll('.run-song').forEach(el=>el.classList.remove('drag-over'));
-  const songs=document.querySelectorAll('.run-item');
-  let idx=0;
-  songs.forEach((el,n)=>{if(el.contains(e.target)) idx=n;});
-  songs[idx]?.querySelector('.run-song')?.classList.add('drag-over');
-}
-function dragLeave(e){e.target.closest('.run-song')?.classList.remove('drag-over');}
-function drop(e,i){
-  e.preventDefault();
-  document.querySelectorAll('.run-song').forEach(el=>el.classList.remove('drag-over'));
-  if(dragIndex===null||dragIndex===i) return;
-  const moved=runsheet.splice(dragIndex,1)[0];
-  runsheet.splice(i,0,moved);
-  dragIndex=null; renderRunsheet();
-}
+// -- DRAG AND DROP --
+function dragStart(i){ dragIndex=i; }
+function dragOver(e,i){ e.preventDefault(); document.querySelectorAll('.run-song').forEach(el=>el.classList.remove('drag-over')); const items=document.querySelectorAll('.run-item'); let idx=0; items.forEach((el,n)=>{if(el.contains(e.target)) idx=n;}); items[idx]&&items[idx].querySelector('.run-song')&&items[idx].querySelector('.run-song').classList.add('drag-over'); }
+function dragLeave(e){ e.target.closest&&e.target.closest('.run-song')&&e.target.closest('.run-song').classList.remove('drag-over'); }
+function drop(e,i){ e.preventDefault(); document.querySelectorAll('.run-song').forEach(el=>el.classList.remove('drag-over')); if(dragIndex===null||dragIndex===i) return; const moved=runsheet.splice(dragIndex,1)[0]; runsheet.splice(i,0,moved); dragIndex=null; renderRunsheet(); }
 
 // -- ENCORE --
 function suggestEncores(){
   const inRs=new Set(runsheet.filter(r=>r.type==='song').map(r=>r.song['Song'].toLowerCase().trim()));
-  const atag=id=>{const el=document.getElementById(id); return el?[...el.querySelectorAll('.tag.active')].map(t=>t.textContent.toLowerCase()):[];};
-  const eventTypes=atag('event-type-tags');
-  const isMilitary=eventTypes.some(e=>e.includes('military')||e.includes('ceremony'));
-  const isWedding=eventTypes.some(e=>e.includes('wedding'));
-
+  const evTypes=[...document.getElementById('event-type-tags').querySelectorAll('.tag.active')].map(t=>t.textContent.toLowerCase()).join(' ');
+  const isMilitary=/military|ceremony/.test(evTypes);
   _encoreCandidates=allSongs.filter(s=>!inRs.has(s['Song'].toLowerCase().trim()))
-    .filter(s=>!availableSingers.length||availableSingers.some(singer=>{const v=(s[singer]||'').toUpperCase();return v==='X'||v==='X?';}) )
-    .map(s=>{
-      let score=getGigScore(s);
-      const kb=findKB(s['Song']);
-      if(kb&&kb.play_count>=10) score+=20;
-      if(isMilitary&&(s['Patriotic']||'').trim()) score+=30;
-      if(isWedding&&/(ballad|soul|pop)/i.test(s['Genre']||'')) score+=15;
-      return {song:s,score};
-    }).sort((a,b)=>b.score-a.score).slice(0,6);
-
+    .filter(s=>!availableSingers.length||availableSingers.some(sg=>{const v=(s[sg]||'').toUpperCase();return v==='X'||v==='X?';}))
+    .map(s=>{ let score=getGigScore(s); const kb=findKB(s['Song']); if(kb&&kb.play_count>=10) score+=20; if(isMilitary&&(s['Patriotic']||'').trim()) score+=30; return {song:s,score}; })
+    .sort((a,b)=>b.score-a.score).slice(0,6);
   const slot=document.getElementById('encore-slot');
-  slot.innerHTML=_encoreCandidates.map((c,i)=>{
-    const s=c.song;
-    const hasHorns=!!(s['Horns']||'').trim();
-    const kb=findKB(s['Song']);
-    const singer=(kb&&kb.primary_singer&&availableSingers.includes(kb.primary_singer))
-      ? kb.primary_singer
-      : availableSingers.find(singer=>{const v=(s[singer]||'').toUpperCase();return v==='X';}) ||'?';
-    return `<button class="encore-opt${encoreSelected===s['Song']?' selected':''}" onclick="selectEncore(${i})">
-      ${esc(s['Song'])}${hasHorns?'<span class="horn-star">*</span>':''}
-      <span class="enc-singer">${singer}</span>
-    </button>`;
+  slot.innerHTML=_encoreCandidates.map((c,idx)=>{
+    const s=c.song; const hasHorns=!!(s['Horns']||'').trim(); const kb=findKB(s['Song']);
+    const singer=(kb&&kb.primary_singer&&availableSingers.includes(kb.primary_singer))?kb.primary_singer:availableSingers.find(sg=>{const v=(s[sg]||'').toUpperCase();return v==='X';})||'?';
+    return '<button class="encore-opt'+(encoreSelected===s['Song']?' selected':'')+'" onclick="selectEncore('+idx+')">'+esc(s['Song'])+(hasHorns?'<span class="horn-star">*</span>':'')+'<span class="enc-singer">'+singer+'</span></button>';
   }).join('');
 }
-function selectEncore(i){
-  encoreSelected=_encoreCandidates[i]?.song['Song']||null;
-  suggestEncores();
-}
-function clearEncore(){
-  encoreSelected=null;
-  document.getElementById('encore-slot').innerHTML='Click Suggest after building setlist';
-}
+function selectEncore(i){ encoreSelected=_encoreCandidates[i]&&_encoreCandidates[i].song['Song']||null; suggestEncores(); }
+function clearEncore(){ encoreSelected=null; document.getElementById('encore-slot').innerHTML='Build your setlist first, then click Suggest'; }
 
-// -- SHOW FLOW --
-function generateShowFlow(){
-  const songs=runsheet.filter(r=>r.type==='song');
-  if(!songs.length) return;
-
-  let songIdx=0;
-  runsheet.forEach((r,i)=>{
-    if(r.type!=='song') return;
-    // Load saved note first, then suggest banter if empty
-    const saved = getShowNote(r.song['Song']);
-    if(saved) {
-      r.flowNote = saved;
-    } else if(!r.flowNote) {
-      r.aiNote = suggestBanter(r.song, songIdx, songs.length, r.setIndex);
-    }
-    songIdx++;
-  });
-  renderRunsheet();
+// -- LAST.FM --
+async function enrichWithLastFm(){
+  const songs=runsheet.filter(r=>r.type==='song'); let done=0;
+  for(const item of songs){
+    const s=item.song; const ckey=(s['Song']+'|'+(s['Artist']||'')).toLowerCase().replace(/[^a-z0-9|]/g,'');
+    if(lastfmCache[ckey]){ applyLastFm(s['Song'],lastfmCache[ckey]); done++; continue; }
+    try{
+      const url='https://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=f5574108495b5bcea4f3f4e52c8a2f5e&artist='+encodeURIComponent(s['Artist']||'')+'&track='+encodeURIComponent(s['Song']||'')+'&format=json';
+      const res=await fetch(url); if(!res.ok) continue;
+      const data=await res.json();
+      if(data.track){ const info={playcount:parseInt(data.track.playcount||0),listeners:parseInt(data.track.listeners||0),tags:(data.track.toptags&&data.track.toptags.tag||[]).map(t=>t.name.toLowerCase())}; lastfmCache[ckey]=info; applyLastFm(s['Song'],info); done++; if(done%5===0) localStorage.setItem(LASTFM_CACHE_KEY,JSON.stringify(lastfmCache)); }
+    }catch(e){}
+    await new Promise(r=>setTimeout(r,250));
+    setStatus('Last.fm: '+done+'/'+songs.length);
+  }
+  localStorage.setItem(LASTFM_CACHE_KEY,JSON.stringify(lastfmCache));
+  setStatus('v Last.fm complete ('+done+'/'+songs.length+')');
 }
+function applyLastFm(songName,info){ const kb=findKB(songName); if(!kb) return; kb.lastfm_plays=info.playcount; kb.lastfm_tags=info.tags||[]; const closerTags=['anthem','singalong','epic','classic','crowd pleaser']; const balladTags=['ballad','slow','romantic','emotional','sad']; if(!kb.historical_role){ if(info.tags&&info.tags.some(t=>closerTags.includes(t))) kb.lastfm_role='CLOSER'; else if(info.tags&&info.tags.some(t=>balladTags.includes(t))) kb.lastfm_role='BALLAD'; } if(info.playcount>50000000&&!kb.historical_role) kb.lastfm_role='CLOSER'; }
 
 // -- SAVE / LOAD --
 function saveGig(){
-  const gig={
-    name:document.getElementById('gig-name').value,
-    date:document.getElementById('gig-date').value,
-    location:document.getElementById('gig-location').value,
-    producer:document.getElementById('gig-producer').value,
-    notes:document.getElementById('gig-notes').value,
-    sets,runsheet,encoreSelected,bandConfig,
-    savedAt:new Date().toISOString()
-  };
-  const key='drsetlist_'+(gig.name||'gig').replace(/\s+/g,'_').toLowerCase();
+  const gig={name:document.getElementById('gig-name').value,date:document.getElementById('gig-date').value,location:document.getElementById('gig-location').value,producer:document.getElementById('gig-producer').value,notes:document.getElementById('gig-notes').value,sets,runsheet,encoreSelected,bandConfig,savedAt:new Date().toISOString()};
+  const key='drsetlist_'+(gig.name||'gig').replace(/\s+/g,'_').toLowerCase().replace(/[^a-z0-9_]/g,'');
   localStorage.setItem(key,JSON.stringify(gig));
-  const btn=document.getElementById('save-btn');
-  btn.textContent='v Saved'; btn.style.color='var(--green)';
-  setTimeout(()=>{btn.textContent='Save';btn.style.color='';},2000);
+  const btn=document.getElementById('save-btn'); btn.textContent='Saved!'; btn.style.color='var(--green)'; setTimeout(()=>{btn.textContent='Save';btn.style.color='';},2000);
 }
 function loadGig(){
   const keys=Object.keys(localStorage).filter(k=>k.startsWith('drsetlist_'));
-  if(!keys.length){alert('No saved gigs found.'); return;}
-  const list=keys.map(k=>{try{const g=JSON.parse(localStorage.getItem(k));return{key:k,name:g.name,date:g.date};}catch(e){return null;}}).filter(Boolean);
-  const choice=prompt('Saved gigs:\n'+list.map((g,i)=>`${i+1}. ${g.date} -- ${g.name}`).join('\n')+'\n\nEnter number:');
-  if(!choice) return;
-  const idx=parseInt(choice)-1;
-  if(isNaN(idx)||!list[idx]) return;
+  if(!keys.length){ alert('No saved gigs found.'); return; }
+  const list=keys.map(k=>{ try{const g=JSON.parse(localStorage.getItem(k));return{key:k,name:g.name,date:g.date};}catch(e){return null;}}).filter(Boolean);
+  const choice=prompt('Saved gigs:\n'+list.map((g,i)=>(i+1)+'. '+g.date+' -- '+g.name).join('\n')+'\n\nEnter number:');
+  if(!choice) return; const idx=parseInt(choice)-1; if(isNaN(idx)||!list[idx]) return;
   const gig=JSON.parse(localStorage.getItem(list[idx].key));
-  document.getElementById('gig-name').value=gig.name||'';
-  document.getElementById('gig-date').value=gig.date||'';
-  document.getElementById('gig-location').value=gig.location||'';
-  document.getElementById('gig-producer').value=gig.producer||'';
-  document.getElementById('gig-notes').value=gig.notes||'';
-  if(gig.sets){sets.splice(0,sets.length,...gig.sets); renderSets();}
+  document.getElementById('gig-name').value=gig.name||''; document.getElementById('gig-date').value=gig.date||''; document.getElementById('gig-location').value=gig.location||''; document.getElementById('gig-producer').value=gig.producer||''; document.getElementById('gig-notes').value=gig.notes||'';
+  if(gig.sets){sets.splice(0,sets.length,...gig.sets);renderSets();}
   if(gig.runsheet) runsheet.splice(0,runsheet.length,...gig.runsheet);
   if(gig.bandConfig) Object.assign(bandConfig,gig.bandConfig);
   if(gig.encoreSelected) encoreSelected=gig.encoreSelected;
   renderRunsheet(); renderLibrary(); updatePrintHeader();
   document.getElementById('encore-bar').style.display='block';
-  document.getElementById('showflow-bar').style.display='block';
-  setStatus(`v Loaded: ${gig.name}`);
+  setStatus('Loaded: '+gig.name);
 }
 
 // -- PRINT HEADER --
 function updatePrintHeader(){
-  const name=document.getElementById('gig-name').value;
-  const date=document.getElementById('gig-date').value;
-  const loc=document.getElementById('gig-location').value;
-  const prod=document.getElementById('gig-producer').value;
+  const name=document.getElementById('gig-name').value; const date=document.getElementById('gig-date').value; const loc=document.getElementById('gig-location').value; const prod=document.getElementById('gig-producer').value;
   document.getElementById('ph-title').textContent=(date?date+'  ':'')+( name||'Setlist');
-  document.getElementById('ph-meta').textContent=[loc,prod?'Producer: '+prod:''].filter(Boolean).join('  .  ');
+  document.getElementById('ph-meta').textContent=[loc,'US Army Band Downrange -- Pershing's Own'].filter(Boolean).join('  |  ');
   const checked=[...document.querySelectorAll('#body-2 input[type=checkbox]:checked')].map(c=>c.value);
   const singers=checked.filter(v=>['Maya R','Rettig','Tue','Patterson','Melinda R'].includes(v));
-  const rhythm=[...checked.filter(v=>['Waltemire','Leader','Roberts','Romero','Chin','Pers'].includes(v))];
-  let p='';
-  if(singers.length) p+=`<strong>Vocals:</strong> ${singers.join(', ')}<br>`;
-  if(rhythm.length) p+=`<strong>Rhythm:</strong> ${rhythm.join(', ')}<br>`;
-  if(bandConfig.horns==='full') p+=`<strong>Horns:</strong> TBD<br>`;
-  if(prod) p+=`<strong>Producer:</strong> ${prod}<br>`;
+  const rhythm=checked.filter(v=>['Waltemire','Leader','Roberts','Romero','Chin','Pers'].includes(v));
+  let p=''; if(singers.length) p+='<strong>Vocals:</strong> '+singers.join(', ')+'<br>'; if(rhythm.length) p+='<strong>Rhythm:</strong> '+rhythm.join(', ')+'<br>'; if(bandConfig.horns==='full') p+='<strong>Horns:</strong> TBD<br>'; if(prod) p+='<strong>Producer:</strong> '+prod+'<br>';
   document.getElementById('ph-personnel').innerHTML=p;
 }
 
 // -- EXPORT CSV --
 function exportCSV(){
-  const songs=runsheet.filter(r=>r.type==='song');
-  if(!songs.length){alert('No songs to export.'); return;}
-  const gigName=document.getElementById('gig-name').value||'Setlist';
-  const gigDate=document.getElementById('gig-date').value||'';
-  let csv=`DR Setlist Export\n"${gigDate}","${gigName}"\n\n`;
-  csv+=`#,Song,Key,Artist,Singer(s),Horns,Genre,Catalog #,Set,Flow Note\n`;
+  const songs=runsheet.filter(r=>r.type==='song'); if(!songs.length){alert('No songs to export.');return;}
+  const gigName=document.getElementById('gig-name').value||'Setlist'; const gigDate=document.getElementById('gig-date').value||'';
+  let csv='DR Setlist Export\n"'+gigDate+'","'+gigName+'"\n\n#,Song,Key,Artist,Singer(s),Horns,Genre,Catalog #,Set,Show Note\n';
   let num=1,curSet=-1;
-  runsheet.forEach(r=>{
-    if(r.type==='break'){csv+=',"--- BREAK ---",,,,,,,,\n'; return;}
-    if(r.setIndex!==curSet){
-      curSet=r.setIndex;
-      csv+=`,"=== ${sets[curSet]?.name||'Set '+(curSet+1)} ===",,,,,,,,\n`;
-    }
-    const s=r.song;
-    const sings=(r.singers&&r.singers.length?r.singers:[r.singer||'']).join(' / ');
-    const note=(r.flowNote||r.aiNote||'').replace(/"/g,'""');
-    csv+=`${num},"${s['Song']||''}","${r.lockedKey||s['Key']||''}","${s['Artist']||''}","${sings}","${(s['Horns']||'').trim()?'Yes':''}","${s['Genre']||''}","${s['Catalog #']||''}","${sets[r.setIndex]?.name||''}","${note}"\n`;
-    num++;
-  });
-  if(encoreSelected) csv+=`E,"${encoreSelected}",,,,,,,,\n`;
-  const blob=new Blob([csv],{type:'text/csv'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url; a.download=`${gigDate?gigDate+' - ':''}${gigName}.csv`.replace(/[/:]/g,'-');
-  a.click(); URL.revokeObjectURL(url);
+  runsheet.forEach(r=>{ if(r.type==='break'){csv+=',"-- BREAK --",,,,,,,,\n';return;} if(r.setIndex!==curSet){curSet=r.setIndex;csv+=',"=== '+(sets[curSet]&&sets[curSet].name||'Set '+(curSet+1))+' ===",,,,,,,,\n';} const s=r.song; const sings=(r.singers&&r.singers.length?r.singers:[r.singer||'']).join(' / '); const note=(r.flowNote||'').replace(/"/g,'""'); csv+=num+',"'+(s['Song']||'')+'","'+(r.lockedKey||s['Key']||'')+'","'+(s['Artist']||'')+'","'+sings+'","'+((s['Horns']||'').trim()?'Yes':'')+'","'+(s['Genre']||'')+'","'+(s['Catalog #']||'')+'","'+(sets[r.setIndex]&&sets[r.setIndex].name||'')+'","'+note+'"\n'; num++; });
+  if(encoreSelected) csv+='E,"'+encoreSelected+'",,,,,,,,\n';
+  const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=(gigDate?gigDate+' - ':'')+gigName+'.csv'; a.click(); URL.revokeObjectURL(url);
 }
 </script>
 </body>
