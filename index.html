@@ -241,7 +241,6 @@
       .encore-opt.selected{color:black;font-weight:bold;}
     }
   </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -255,7 +254,7 @@
   <h1>DR Setlist Creator</h1>
   <div class="hdr-right">
     <input type="file" id="file-input" accept=".csv,.xlsx,.xls" onchange="loadCSVFile(this)" style="display:none"/>
-    <button class="btn btn-accent" style="font-size:13px" onclick="document.getElementById('file-input').click()">📂 Load Songs (CSV or Excel)</button>
+    <button class="btn btn-accent" style="font-size:13px" onclick="document.getElementById('file-input').click()">📂 Load Songs (CSV or XLSX)</button>
     <button class="btn btn-outline" onclick="document.getElementById('url-row').style.display=document.getElementById('url-row').style.display==='none'?'flex':'none'">URL ▾</button>
     <span id="status">Download your Google Sheet as XLSX, then click Load</span>
   </div>
@@ -671,20 +670,18 @@ function loadCSVFile(input){
   setStatus('Reading file…');
 
   if(isXLSX){
+    // Parse xlsx without SheetJS by extracting the shared strings + sheet XML
     const reader=new FileReader();
     reader.onload=e=>{
-      try {
-        const wb = XLSX.read(e.target.result, {type:'array'});
-        // Use first sheet
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const csv = XLSX.utils.sheet_to_csv(ws);
-        allSongs = parseCSV(csv);
+      parseXLSX(e.target.result).then(csv=>{
+        allSongs=parseCSV(csv);
         populateGenres(); renderLibrary();
         document.getElementById('song-total').textContent=allSongs.length+' songs';
-        setStatus(`✓ ${allSongs.length} songs from Excel`);
-      } catch(err) {
-        setStatus('Failed to read Excel file: '+err.message, true);
-      }
+        setStatus('✓ '+allSongs.length+' songs from Excel');
+      }).catch(err=>{
+        setStatus('Excel parse failed — please save as CSV instead', true);
+        console.error(err);
+      });
     };
     reader.readAsArrayBuffer(file);
   } else {
@@ -693,10 +690,125 @@ function loadCSVFile(input){
       allSongs=parseCSV(e.target.result);
       populateGenres(); renderLibrary();
       document.getElementById('song-total').textContent=allSongs.length+' songs';
-      setStatus(`✓ ${allSongs.length} songs from CSV`);
+      setStatus('✓ '+allSongs.length+' songs from CSV');
     };
     reader.readAsText(file);
   }
+}
+
+async function parseXLSX(buffer){
+  // Use DecompressionStream to unzip xlsx (no eval needed)
+  const bytes = new Uint8Array(buffer);
+  
+  // xlsx is a zip file - use the File System API approach
+  // Extract via manual zip parsing
+  const files = await unzipBuffer(bytes);
+  
+  // Get shared strings
+  const ssXml = files['xl/sharedStrings.xml'] || '';
+  const strings = [];
+  const siMatches = ssXml.matchAll(/<si>.*?<\/si>/gs);
+  for(const m of siMatches){
+    const t = [...m[0].matchAll(/<t[^>]*>([^<]*)<\/t>/g)].map(x=>x[1]).join('');
+    strings.push(t.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'"));
+  }
+
+  // Get first sheet
+  const wbXml = files['xl/workbook.xml'] || '';
+  const sheetMatch = wbXml.match(/r:id="(rId\d+)"/);
+  const rId = sheetMatch ? sheetMatch[1] : 'rId1';
+  const relXml = files['xl/_rels/workbook.xml.rels'] || '';
+  const relMatch = new RegExp(`Id="${rId}"[^/]*Target="([^"]+)"`).exec(relXml);
+  const sheetPath = 'xl/' + (relMatch ? relMatch[1] : 'worksheets/sheet1.xml');
+  const sheetXml = files[sheetPath] || files['xl/worksheets/sheet1.xml'] || '';
+
+  // Parse rows
+  const rows = [];
+  const rowMatches = sheetXml.matchAll(/<row[^>]*>(.*?)<\/row>/gs);
+  for(const rowM of rowMatches){
+    const cells = [];
+    const cellMatches = rowM[1].matchAll(/<c r="([A-Z]+\d+)"[^>]*t="([^"]*)"[^>]*>.*?<v>([^<]*)<\/v>.*?<\/c>/gs);
+    const cellMap = {};
+    for(const cm of cellMatches){
+      const col = cm[1].replace(/\d/g,'');
+      const type = cm[2];
+      let val = cm[3];
+      if(type==='s') val = strings[parseInt(val)] || '';
+      cellMap[col] = val;
+    }
+    // Also catch cells without type (numbers/dates)
+    const cellMatches2 = rowM[1].matchAll(/<c r="([A-Z]+\d+)"(?![^>]*t=)[^>]*>.*?<v>([^<]*)<\/v>/gs);
+    for(const cm of cellMatches2){
+      const col = cm[1].replace(/\d/g,'');
+      if(!cellMap[col]) cellMap[col] = cm[2];
+    }
+    if(Object.keys(cellMap).length) rows.push(cellMap);
+  }
+
+  if(!rows.length) throw new Error('No data found in sheet');
+
+  // Get column range
+  const allCols = new Set(rows.flatMap(r=>Object.keys(r)));
+  const colArr = [...allCols].sort();
+
+  // Convert to CSV
+  const csvRows = rows.map(r=>colArr.map(c=>{
+    const v=(r[c]||'').replace(/"/g,'""');
+    return `"${v}"`;
+  }).join(','));
+  return csvRows.join('\n');
+}
+
+async function unzipBuffer(bytes){
+  // Simple zip parser - no eval, no external libs
+  const files = {};
+  let offset = 0;
+  const view = new DataView(bytes.buffer);
+  
+  while(offset < bytes.length - 4){
+    const sig = view.getUint32(offset, true);
+    if(sig !== 0x04034b50) break; // local file header signature
+    
+    const flags = view.getUint16(offset+6, true);
+    const compression = view.getUint16(offset+8, true);
+    const compSize = view.getUint32(offset+18, true);
+    const uncompSize = view.getUint32(offset+22, true);
+    const nameLen = view.getUint16(offset+26, true);
+    const extraLen = view.getUint16(offset+28, true);
+    
+    const nameBytes = bytes.slice(offset+30, offset+30+nameLen);
+    const name = new TextDecoder().decode(nameBytes);
+    const dataStart = offset+30+nameLen+extraLen;
+    const data = bytes.slice(dataStart, dataStart+compSize);
+    
+    if(compression === 0){
+      // Stored (no compression)
+      files[name] = new TextDecoder('utf-8').decode(data);
+    } else if(compression === 8){
+      // Deflate
+      try{
+        const ds = new DecompressionStream('deflate-raw');
+        const writer = ds.writable.getWriter();
+        const reader = ds.readable.getReader();
+        writer.write(data);
+        writer.close();
+        const chunks = [];
+        while(true){
+          const {done, value} = await reader.read();
+          if(done) break;
+          chunks.push(value);
+        }
+        const total = chunks.reduce((a,b)=>a+b.length,0);
+        const result = new Uint8Array(total);
+        let pos=0;
+        for(const c of chunks){result.set(c,pos);pos+=c.length;}
+        files[name] = new TextDecoder('utf-8').decode(result);
+      } catch(e){ /* skip binary files */ }
+    }
+    
+    offset = dataStart + compSize;
+  }
+  return files;
 }
 
 function parseCSV(csv){
