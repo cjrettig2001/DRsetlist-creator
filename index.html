@@ -879,7 +879,7 @@ function renderRunsheet(){
     const kb=findKB(s['Song']); const primary=kb&&kb.primary_singer;
     const assigned=item.singers&&item.singers.length?item.singers:(item.singer?[item.singer]:[]);
     const singerPool=(availableSingers.length?availableSingers:SINGER_COLS).filter(sg=>{const v=(s[sg]||'').toUpperCase();return v==='X'||v==='X?';});
-    const singerBtns=singerPool.map(sg=>'<button class="singer-btn'+(assigned.includes(sg)?' active':'')+'" onclick="toggleSinger('+i+',''+sg+'')">'+(sg.split(' ')[0])+(sg===primary?'*':'')+'</button>').join('');
+    const singerBtns=singerPool.map(sg=>'<button class="singer-btn'+(assigned.includes(sg)?' active':'')+'" data-setidx="'+i+'" data-singer="'+sg+'">'+(sg.split(' ')[0])+(sg===primary?'*':'')+'</button>').join('');
     const detail=[s['Artist'],assigned.join(' / ')].filter(Boolean).join(' &middot; ');
     const noteVal=item.flowNote||'';
 
@@ -921,6 +921,7 @@ function suggestEncores(){
     const singer=(kb&&kb.primary_singer&&availableSingers.includes(kb.primary_singer))?kb.primary_singer:availableSingers.find(sg=>{const v=(s[sg]||'').toUpperCase();return v==='X';})||'?';
     return '<button class="encore-opt'+(encoreSelected===s['Song']?' selected':'')+'" onclick="selectEncore('+idx+')">'+esc(s['Song'])+(hasHorns?'<span class="horn-star">*</span>':'')+'<span class="enc-singer">'+singer+'</span></button>';
   }).join('');
+  el.onclick=function(e){var b=e.target.closest('.singer-btn');if(b)toggleSinger(+b.dataset.setidx,b.dataset.singer);};
 }
 function selectEncore(i){ encoreSelected=_encoreCandidates[i]&&_encoreCandidates[i].song['Song']||null; suggestEncores(); }
 function clearEncore(){ encoreSelected=null; document.getElementById('encore-slot').innerHTML='Build your setlist first, then click Suggest'; }
