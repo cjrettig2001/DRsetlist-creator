@@ -890,7 +890,7 @@ function renderRunsheet(){
       +'<div class="run-detail">'+detail+'</div>'
       +'<div class="singer-assign">'+singerBtns+'</div></div>'
       +'<button class="run-remove" onclick="removeItem('+i+')">x</button></div>'
-      +'<div class="flow-note"><textarea rows="2" placeholder="Show note / banter (saves automatically)" oninput="runsheet['+i+'].flowNote=this.value;saveShowNote(runsheet['+i+'].song['Song'],this.value);autoResize(this)">'+esc(noteVal)+'</textarea></div>'
+      +'<div class="flow-note"><textarea rows="2" placeholder="Show note / banter (saves automatically)" oninput="runsheet['+i+'].flowNote=this.value;saveShowNote(runsheet['+i+'].song["Song"],this.value);autoResize(this)">'+esc(noteVal)+'</textarea></div>'
       +'</div>';
   });
   el.innerHTML=html; el.querySelectorAll('textarea').forEach(autoResize);
