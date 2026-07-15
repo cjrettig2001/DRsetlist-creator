@@ -461,6 +461,7 @@
         <button class="btn btn-outline" onclick="loadGig()">Load</button>
         <button class="btn btn-outline" onclick="exportCSV()">CSV</button>
         <button class="btn btn-outline" onclick="exportSetlistDocx()">DOCX</button>
+        <button id="banter-btn" class="btn btn-outline" onclick="suggestBanterPoints()">Suggest Banter</button>
         <button class="btn btn-outline" onclick="clearRunsheet()">Clear</button>
         <button class="btn btn-outline" onclick="newGig()">New Gig</button>
         <button class="btn btn-accent" onclick="updatePrintHeader();window.print()">Print</button>
@@ -1182,7 +1183,7 @@ function makeZip(files){
 }
 function docxRunXml(run){
   let rpr='';
-  if(run.bold||run.italic||run.color) rpr='<w:rPr>'+(run.bold?'<w:b/>':'')+(run.italic?'<w:i/>':'')+(run.color?'<w:color w:val="'+run.color+'"/>':'')+'</w:rPr>';
+  if(run.bold||run.italic||run.color||run.size) rpr='<w:rPr>'+(run.bold?'<w:b/>':'')+(run.italic?'<w:i/>':'')+(run.color?'<w:color w:val="'+run.color+'"/>':'')+(run.size?'<w:sz w:val="'+run.size+'"/><w:szCs w:val="'+run.size+'"/>':'')+'</w:rPr>';
   const lines=(run.text||'').split('\n');
   const t=lines.map(l=>'<w:t xml:space="preserve">'+esc(l)+'</w:t>').join('<w:br/>');
   return '<w:r>'+rpr+t+'</w:r>';
@@ -1193,7 +1194,7 @@ function buildDocx(paragraphs){
   const contentTypes='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>';
   const rootRels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>';
   const docRels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
-  const styles='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:sz w:val="22"/><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/></w:rPr></w:rPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style></w:styles>';
+  const styles='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:sz w:val="26"/><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:line="276" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style></w:styles>';
   const documentXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+paragraphs.map(docxParagraphXml).join('')+'<w:sectPr/></w:body></w:document>';
   const files=[
     {name:'[Content_Types].xml',data:enc.encode(contentTypes)},
@@ -1213,53 +1214,55 @@ function exportSetlistDocx(){
   const singerNames=checked.filter(v=>SINGER_COLS.includes(v));
   const rhythmNames=checked.filter(v=>!SINGER_COLS.includes(v));
 
+  const HEADER_SZ=26, SECTION_SZ=32, SONG_SZ=32, MARKER_SZ=28, NOTES_SZ=26;
   const P=[]; // paragraphs
   const para=runs=>P.push({runs});
-  const plain=t=>para([{text:t}]);
-  const bold=t=>para([{text:t,bold:true}]);
+  const plain=(t,size)=>para([{text:t,size:size||HEADER_SZ}]);
+  const bold=(t,size)=>para([{text:t,bold:true,size:size||HEADER_SZ}]);
 
-  bold([gigDate,gigLocation].filter(Boolean).join(' '));
-  plain('Vocals: '+singerNames.join(', '));
-  plain('Rhythm: '+rhythmNames.join(', '));
+  bold([gigDate,gigLocation].filter(Boolean).join(' '),HEADER_SZ);
+  plain('Vocals: '+singerNames.join(', '),HEADER_SZ);
+  plain('Rhythm: '+rhythmNames.join(', '),HEADER_SZ);
   let hasExtraHeaderLine=false;
-  if(bandConfig.horns==='full'){ plain('Horns: TBD'); hasExtraHeaderLine=true; }
-  if(gigProducer){ plain('Producer: '+gigProducer); hasExtraHeaderLine=true; }
-  if(hasExtraHeaderLine) plain('_'.repeat(55));
+  if(bandConfig.horns==='full'){ plain('Horns: TBD',HEADER_SZ); hasExtraHeaderLine=true; }
+  if(gigProducer){ plain('Producer: '+gigProducer,HEADER_SZ); hasExtraHeaderLine=true; }
+  if(hasExtraHeaderLine) plain('_'.repeat(55),HEADER_SZ);
 
   const banterNotes=[]; // {singer, prev, next, text}
-  let curSet=-1;
+  let curSet=-1; let songNum=0;
   const multiSet=sets.length>1;
-  if(!multiSet) bold('SETLIST');
+  if(!multiSet) bold('SETLIST',SECTION_SZ);
   runsheet.forEach((item,i)=>{
-    if(item.type==='break'){ P.push({runs:[{text:''}]}); return; }
+    if(item.type==='break'){ P.push({runs:[{text:'',size:SONG_SZ}]}); return; }
     if(multiSet&&item.setIndex!==curSet){
       curSet=item.setIndex;
       const setObj=sets[curSet]||{name:'Set '+(curSet+1),minutes:45};
       const m=setObj.minutes; const dur=(m>=60&&m%60===0)?(m/60)+'hr':m+' min';
-      bold((setObj.name||'Set '+(curSet+1))+' ('+dur+')');
+      bold((setObj.name||'Set '+(curSet+1))+' ('+dur+')',SECTION_SZ);
     }
+    songNum++;
     const s=item.song; const hasHorns=!!(s['Horns']||'').trim();
     const assigned=(item.singers&&item.singers.length?item.singers:(item.singer?[item.singer]:[])).join('/');
     const nextIsSongSameSet=runsheet[i+1]&&runsheet[i+1].type==='song'&&runsheet[i+1].setIndex===item.setIndex;
     const segue=nextIsSongSameSet&&!item.flowNote;
-    para([{text:s['Song'],bold:true},{text:(hasHorns?'*':'')+' - '+assigned+(segue?'>>>':'')}]);
+    para([{text:songNum+'. '+s['Song'],bold:true,size:SONG_SZ},{text:(hasHorns?'*':'')+' - '+assigned+(segue?'>>>':''),size:SONG_SZ}]);
     if(item.flowNote){
-      P.push({runs:[{text:'*'+(assigned||'')+' Talks - see notes*',color:'38761d'}]});
+      P.push({runs:[{text:'*'+(assigned||'')+' Talks - see notes*',color:'38761d',size:MARKER_SZ}]});
       const nextTitle=runsheet[i+1]&&runsheet[i+1].type==='song'?runsheet[i+1].song['Song']:null;
       banterNotes.push({singer:assigned,prev:s['Song'],next:nextTitle,text:item.flowNote});
     }
   });
-  if(encoreSelected) para([{text:'Encore -',italic:true},{text:' '+encoreSelected,bold:true}]);
+  if(encoreSelected) para([{text:'Encore -',italic:true,size:SONG_SZ},{text:' '+encoreSelected,bold:true,size:SONG_SZ}]);
 
-  plain(''); plain('');
-  bold('VOCAL NOTES');
-  plain('***Red Italicized line needs to be exact. This cues band.***');
-  plain('***bold black is direction, not words**');
-  plain('');
+  plain('',NOTES_SZ); plain('',NOTES_SZ);
+  bold('VOCAL NOTES',NOTES_SZ);
+  plain('***Red Italicized line needs to be exact. This cues band.***',NOTES_SZ);
+  plain('***bold black is direction, not words**',NOTES_SZ);
+  plain('',NOTES_SZ);
   banterNotes.forEach(n=>{
-    plain((n.singer||'')+' after "'+n.prev+'"'+(n.next?' before "'+n.next+'"':''));
-    plain(n.text);
-    plain('');
+    plain((n.singer||'')+' after "'+n.prev+'"'+(n.next?' before "'+n.next+'"':''),NOTES_SZ);
+    plain(n.text,NOTES_SZ);
+    plain('',NOTES_SZ);
   });
 
   const gigName=document.getElementById('gig-name').value||'Setlist';
@@ -1267,6 +1270,67 @@ function exportSetlistDocx(){
   const blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
   const url=URL.createObjectURL(blob); const a=document.createElement('a');
   a.href=url; a.download=(gigDate?gigDate+' - ':'')+gigName+'.docx'; a.click(); URL.revokeObjectURL(url);
+}
+
+// -- AI BANTER SUGGESTIONS --
+const BANTER_BAND_BACKGROUND = 'Downrange is the popular-music ensemble of The U.S. Army Band "Pershing\'s Own." It plays rock, pop, country, R&B, and patriotic arrangements for troops and the public. It was formed after a December 2002 USO tour to Uzbekistan, Kuwait, and Afghanistan with country artist Darryl Worley -- the first time since 1945 the band performed in a foreign theater of operations -- and its mission centers on connecting with audiences and boosting morale through music, both overseas and at home. Typical lineup: 2-4 mixed vocalists, 2 keyboards, drums, bass, 2 lead guitars, sometimes a horn line.';
+const BANTER_EXAMPLES = [
+  'Hello, Baltimore! How\'s everybody doing today!? We are The US Army Band Downrange from Fort Myer, Virginia and it\'s an honor to be here with you all! We have a great collection of music for you, so feel free to dance, sing along, and have a good time with us! Are you ready, Baltimore?',
+  'Thank you! We\'ll be back after a short break!',
+  'How are you feeling, DC!? We are the US Army Band Downrange coming from Fort Myer, VA and we are so happy to be here with you today! We have a great set up of music for you, so feel free to sing along, dance, clap your hands, whatever you feel! Enjoy the show!',
+  'We thank you for your service.'
+];
+async function suggestBanterPoints(){
+  const songs=runsheet.filter(r=>r.type==='song');
+  if(!songs.length){ alert('Build a setlist first.'); return; }
+  const btn=document.getElementById('banter-btn'); const origLabel=btn.textContent;
+  btn.textContent='Thinking...'; btn.disabled=true;
+  try{
+    const activeTags=id=>[...document.querySelectorAll('#'+id+' .tag.active')].map(t=>t.textContent);
+    const gigContext={
+      venue:document.getElementById('gig-location').value||'',
+      producer:document.getElementById('gig-producer').value||'',
+      eventTypes:activeTags('event-type-tags'),
+      audience:activeTags('climate-tags'),
+      energy:activeTags('energy-tags'),
+      notes:document.getElementById('gig-notes').value||''
+    };
+    const runsheetPayload=runsheet.map((item,i)=>{
+      if(item.type==='break') return {index:i,type:'break'};
+      const next=runsheet[i+1];
+      const gearChange=!!(item.song['Guitar']&&next&&next.type==='song'&&next.song['Guitar']&&item.song['Guitar']!==next.song['Guitar']);
+      return {
+        index:i,type:'song',
+        title:item.song['Song'],artist:item.song['Artist']||'',
+        singers:(item.singers&&item.singers.length?item.singers:(item.singer?[item.singer]:[])),
+        setIndex:item.setIndex,
+        lastInSet:!next||next.type==='break'||next.setIndex!==item.setIndex,
+        hasNote:!!item.flowNote,
+        gearChange
+      };
+    });
+    const payload={gigContext,runsheet:runsheetPayload,bandBackground:BANTER_BAND_BACKGROUND,exampleBanter:BANTER_EXAMPLES};
+    const res=await fetch('https://dr-setlist.cjrettig2001.workers.dev/banter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!res.ok) throw new Error('Worker error '+res.status);
+    const data=await res.json();
+    const suggestions=data.suggestions||[];
+    if(!suggestions.length){ alert('No banter suggestions came back.'); return; }
+    let applied=0;
+    suggestions.forEach(sug=>{
+      const item=runsheet[sug.index];
+      if(item&&item.type==='song'&&!item.flowNote&&sug.text){
+        item.flowNote=sug.text;
+        saveShowNote(item.song['Song'],sug.text);
+        applied++;
+      }
+    });
+    renderRunsheet();
+    setStatus('Added '+applied+' banter suggestion(s)');
+  } catch(e){
+    alert('Could not get banter suggestions -- make sure the /banter route is set up on your Worker.');
+  } finally {
+    btn.textContent=origLabel; btn.disabled=false;
+  }
 }
 </script>
 </body>
