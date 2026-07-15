@@ -31,7 +31,7 @@
     .btn-green{background:var(--green);color:#0e0e10;border:none;border-radius:4px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;}
 
     /* RESPONSIVE LAYOUT */
-    @media (min-width:768px){
+    @media (min-width:960px){
       .app{display:grid;grid-template-columns:300px 1fr 380px;height:calc(100vh - 49px);}
       .tab-bar{display:none!important;}
       .tab-panel{display:flex!important;flex-direction:column;overflow:hidden;}
@@ -41,7 +41,7 @@
       .gig-panel::-webkit-scrollbar{width:4px;}
       .gig-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
     }
-    @media (max-width:767px){
+    @media (max-width:959px){
       .app{display:flex;flex-direction:column;height:calc(100vh - 49px);}
       .tab-bar{display:flex;border-bottom:2px solid var(--border);background:var(--surface);flex-shrink:0;}
       .tab-panel{display:none;flex:1;overflow-y:auto;}
@@ -67,14 +67,14 @@
 
     .field-label{display:block;font-size:10px;color:var(--muted);margin-bottom:3px;margin-top:9px;text-transform:uppercase;letter-spacing:0.5px;}
     .step-body input[type=text],.step-body textarea,.step-body select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:14px;padding:7px 9px;outline:none;font-family:'Inter',sans-serif;}
-    @media(min-width:768px){.step-body input[type=text],.step-body textarea,.step-body select{font-size:12px;padding:6px 8px;}}
+    @media(min-width:960px){.step-body input[type=text],.step-body textarea,.step-body select{font-size:12px;padding:6px 8px;}}
     .step-body input:focus,.step-body textarea:focus{border-color:var(--accent);}
     .step-body textarea{resize:vertical;min-height:55px;line-height:1.5;}
 
     /* PERSONNEL */
     .person-grid{display:flex;flex-direction:column;gap:4px;margin-top:4px;}
     .person-check{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:8px 10px;border-radius:4px;border:1px solid var(--border);transition:all 0.1s;}
-    @media(min-width:768px){.person-check{font-size:12px;padding:5px 8px;}}
+    @media(min-width:960px){.person-check{font-size:12px;padding:5px 8px;}}
     .person-check:hover{border-color:var(--accent);background:var(--accent-dim);}
     .person-check.on{border-color:var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:500;}
     .person-check input{accent-color:var(--accent);width:14px;height:14px;cursor:pointer;}
@@ -84,7 +84,7 @@
     /* TAGS */
     .tag-grid{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
     .tag{padding:6px 11px;border-radius:3px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:none;transition:all 0.15s;}
-    @media(min-width:768px){.tag{padding:4px 9px;font-size:11px;}}
+    @media(min-width:960px){.tag{padding:4px 9px;font-size:11px;}}
     .tag:hover{border-color:var(--accent);color:var(--accent);}
     .tag.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
 
@@ -121,7 +121,7 @@
     .filters input:focus,.filters select:focus{border-color:var(--accent);}
 
     .col-headers{display:grid;grid-template-columns:1fr 45px 55px 30px;padding:4px 11px;gap:5px;background:var(--surface);border-bottom:1px solid var(--border);}
-    @media(min-width:768px){.col-headers{grid-template-columns:1fr 50px 60px 80px 55px 42px 26px;}}
+    @media(min-width:960px){.col-headers{grid-template-columns:1fr 50px 60px 80px 55px 42px 26px;}}
     .col-headers span{font-size:9px;font-weight:600;letter-spacing:0.7px;text-transform:uppercase;color:var(--muted);}
 
     .song-list{flex:1;overflow-y:auto;}
@@ -129,7 +129,7 @@
     .song-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
     .song-row{display:grid;grid-template-columns:1fr 45px 55px 30px;align-items:center;padding:8px 11px;border-bottom:1px solid var(--border);gap:5px;transition:background 0.1s;}
-    @media(min-width:768px){.song-row{grid-template-columns:1fr 50px 60px 80px 55px 42px 26px;padding:6px 11px;}}
+    @media(min-width:960px){.song-row{grid-template-columns:1fr 50px 60px 80px 55px 42px 26px;padding:6px 11px;}}
     .song-row:hover{background:var(--surface);}
     .song-title{font-weight:500;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .song-sub{font-size:10px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -138,7 +138,7 @@
     .hist-badge{font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace;padding:2px 4px;border-radius:2px;background:rgba(76,175,130,0.15);color:var(--green);white-space:nowrap;}
     .hist-badge.new-song{background:rgba(124,106,247,0.15);color:var(--ai);}
     .add-btn{background:none;border:1px solid var(--border);border-radius:3px;color:var(--muted);cursor:pointer;width:26px;height:26px;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all 0.1s;flex-shrink:0;}
-    @media(min-width:768px){.add-btn{width:20px;height:20px;font-size:14px;}}
+    @media(min-width:960px){.add-btn{width:20px;height:20px;font-size:14px;}}
     .add-btn:hover{background:var(--accent);color:#0e0e10;border-color:var(--accent);}
     .empty-msg{padding:24px 14px;text-align:center;color:var(--muted);font-size:12px;line-height:1.7;}
 
@@ -171,7 +171,9 @@
     .set-block-meta{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
 
     .run-item{border-bottom:1px solid var(--border);}
-    .run-song{display:grid;grid-template-columns:22px 1fr auto;align-items:start;padding:8px 13px 4px;gap:8px;cursor:grab;transition:background 0.1s;}
+    .run-song{display:grid;grid-template-columns:22px 1fr auto auto;align-items:start;padding:8px 13px 4px;gap:8px;cursor:grab;transition:background 0.1s;}
+    .run-move{display:flex;flex-direction:column;}
+    .run-move .icon-btn{font-size:12px;line-height:1;padding:2px;}
     .run-song:hover{background:var(--surface);}
     .run-song:active{cursor:grabbing;}
     .run-song.drag-over{border-top:2px solid var(--accent);}
@@ -209,7 +211,7 @@
     #print-header{display:none;}
     @media print{
       header,#sheet-bar,.library,.gig-panel,.rs-actions,
-      .run-remove,.encore-bar .btn,.singer-assign,
+      .run-remove,.run-move,.encore-bar .btn,.singer-assign,
       .flow-note,.key-sel,.tab-bar{display:none!important;}
       body{background:white;color:black;font-family:Arial,sans-serif;font-size:11pt;}
       .app{display:block;height:auto;}
@@ -440,6 +442,7 @@
         <button class="btn btn-outline" onclick="loadGig()">Load</button>
         <button class="btn btn-outline" onclick="exportCSV()">CSV</button>
         <button class="btn btn-outline" onclick="clearRunsheet()">Clear</button>
+        <button class="btn btn-outline" onclick="newGig()">New Gig</button>
         <button class="btn btn-accent" onclick="updatePrintHeader();window.print()">Print</button>
       </div>
     </div>
@@ -516,7 +519,7 @@ function toggleExcl(btn){ btn.closest('.tag-grid').querySelectorAll('.tag').forE
 
 // -- LAYOUT --
 function updateLayout(){
-  const desk = window.innerWidth >= 768;
+  const desk = window.innerWidth >= 960;
   ['col-artist','col-hist','col-cat'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display=desk?'':'none'; });
   if(desk){ document.querySelectorAll('.tab-panel').forEach(p=>{p.style.display='flex';p.style.flexDirection='column';}); }
   else { showTab(currentTab); }
@@ -754,7 +757,7 @@ function renderLibrary(){
   const hornsF=document.getElementById('filter-horns').value;
   const flag=document.getElementById('filter-flags').value;
   const inRs=new Set(runsheet.filter(r=>r.type==='song').map(r=>r.song['Song'].toLowerCase().trim()));
-  const desk=window.innerWidth>=768;
+  const desk=window.innerWidth>=960;
 
   let filtered=allSongs.filter(s=>{
     if(search){ const t=(s['Song']||'')+(s['Artist']||'')+(s['Genre']||''); if(!t.toLowerCase().includes(search)) return false; }
@@ -821,6 +824,7 @@ function addSong(enc){
 }
 function removeItem(i){ runsheet.splice(i,1); renderRunsheet(); renderLibrary(); }
 function clearRunsheet(){ if(runsheet.length&&!confirm('Clear the setlist?')) return; runsheet=[]; encoreSelected=null; renderRunsheet(); renderLibrary(); }
+function newGig(){ if(runsheet.length&&!confirm('Start a new gig? Unsaved changes to the current setlist will be lost.')) return; location.reload(); }
 
 // -- BUILD SETLIST --
 function buildSetlist(){
@@ -958,6 +962,7 @@ function renderRunsheet(){
       +'<div style="flex:1;min-width:0"><div class="run-title">'+esc(s['Song'])+(hasHorns?'<span class="horn-star">*</span>':'')+' '+keyDisplay+'</div>'
       +'<div class="run-detail">'+detail+'</div>'
       +'<div class="singer-assign">'+singerBtns+'</div></div>'
+      +'<div class="run-move"><button class="icon-btn" title="Move up" onclick="moveSong('+i+',-1)">^</button><button class="icon-btn" title="Move down" onclick="moveSong('+i+',1)">v</button></div>'
       +'<button class="run-remove" onclick="removeItem('+i+')">x</button></div>'
       +'<div class="flow-note"><textarea rows="2" placeholder="Show note / banter (saves automatically)" oninput="runsheet['+i+'].flowNote=this.value;saveShowNote(runsheet['+i+'].song["Song"],this.value);autoResize(this)">'+esc(noteVal)+'</textarea></div>'
       +'</div>';
@@ -973,7 +978,9 @@ function toggleSinger(i,singer){ const item=runsheet[i]; if(!item||item.type!=='
 function dragStart(i){ dragIndex=i; }
 function dragOver(e,i){ e.preventDefault(); document.querySelectorAll('.run-song').forEach(el=>el.classList.remove('drag-over')); const items=document.querySelectorAll('.run-item'); let idx=0; items.forEach((el,n)=>{if(el.contains(e.target)) idx=n;}); items[idx]&&items[idx].querySelector('.run-song')&&items[idx].querySelector('.run-song').classList.add('drag-over'); }
 function dragLeave(e){ e.target.closest&&e.target.closest('.run-song')&&e.target.closest('.run-song').classList.remove('drag-over'); }
-function drop(e,i){ e.preventDefault(); document.querySelectorAll('.run-song').forEach(el=>el.classList.remove('drag-over')); if(dragIndex===null||dragIndex===i) return; const moved=runsheet.splice(dragIndex,1)[0]; runsheet.splice(i,0,moved); dragIndex=null; renderRunsheet(); }
+function drop(e,i){ e.preventDefault(); document.querySelectorAll('.run-song').forEach(el=>el.classList.remove('drag-over')); if(dragIndex===null||dragIndex===i) return; const moved=runsheet.splice(dragIndex,1)[0]; runsheet.splice(i,0,moved); dragIndex=null; recomputeSetIndexes(); renderRunsheet(); }
+function moveSong(i,dir){ const j=i+dir; if(j<0||j>=runsheet.length) return; [runsheet[i],runsheet[j]]=[runsheet[j],runsheet[i]]; recomputeSetIndexes(); renderRunsheet(); }
+function recomputeSetIndexes(){ let si=0; runsheet.forEach(item=>{ if(item.type==='break'){si++;return;} item.setIndex=si; }); }
 
 // -- ENCORE --
 function suggestEncores(){
@@ -1002,7 +1009,7 @@ async function enrichWithLastFm(){
     const s=item.song; const ckey=(s['Song']+'|'+(s['Artist']||'')).toLowerCase().replace(/[^a-z0-9|]/g,'');
     if(lastfmCache[ckey]){ applyLastFm(s['Song'],lastfmCache[ckey]); done++; continue; }
     try{
-      const url='https://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=f5574108495b5bcea4f3f4e52c8a2f5e&artist='+encodeURIComponent(s['Artist']||'')+'&track='+encodeURIComponent(s['Song']||'')+'&format=json';
+      const url='https://dr-setlist.cjrettig2001.workers.dev/lastfm?artist='+encodeURIComponent(s['Artist']||'')+'&track='+encodeURIComponent(s['Song']||'');
       const res=await fetch(url); if(!res.ok) continue;
       const data=await res.json();
       if(data.track){ const info={playcount:parseInt(data.track.playcount||0),listeners:parseInt(data.track.listeners||0),tags:(data.track.toptags&&data.track.toptags.tag||[]).map(t=>t.name.toLowerCase())}; lastfmCache[ckey]=info; applyLastFm(s['Song'],info); done++; if(done%5===0) localStorage.setItem(LASTFM_CACHE_KEY,JSON.stringify(lastfmCache)); }
