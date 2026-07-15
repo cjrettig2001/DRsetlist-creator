@@ -1309,8 +1309,19 @@ async function suggestBanterPoints(){
         gearChange
       };
     });
-    const payload={gigContext,runsheet:runsheetPayload,bandBackground:BANTER_BAND_BACKGROUND,exampleBanter:BANTER_EXAMPLES};
-    const res=await fetch('https://dr-setlist.cjrettig2001.workers.dev/banter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const prompt=BANTER_BAND_BACKGROUND+'\n\n'
+      +'Example banter style from this band\'s real shows:\n'+BANTER_EXAMPLES.map(t=>'- "'+t+'"').join('\n')+'\n\n'
+      +'Gig context: '+JSON.stringify(gigContext)+'\n\n'
+      +'Setlist (in order): '+JSON.stringify(runsheetPayload)+'\n\n'
+      +'Pick a handful of natural spots for banter -- NOT every song. Prioritize, in order: '
+      +'(1) gearChange:true gaps, since the band needs cover time for an instrument/patch change, '
+      +'(2) set transitions, (3) energy shifts. Skip any song where hasNote is already true. '
+      +'Write 1-3 sentence banter for each spot in the example style above, personalized to the gig context. '
+      +'Only ONE suggestion for the whole show (at most) should mention the band\'s own background/mission/history -- '
+      +'reserve that for the opening greeting if used at all; every other suggestion should be about the music, '
+      +'the crowd, or the moment, not about the band itself. '
+      +'Respond with ONLY valid JSON, no other text: {"suggestions":[{"index":<runsheet index the banter follows>,"text":"..."}]}';
+    const res=await fetch('https://dr-setlist.cjrettig2001.workers.dev/banter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
     if(!res.ok) throw new Error('Worker error '+res.status);
     const data=await res.json();
     const suggestions=data.suggestions||[];
