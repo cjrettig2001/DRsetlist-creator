@@ -187,6 +187,16 @@
     .run-remove{background:none;border:none;color:var(--border);cursor:pointer;font-size:14px;padding:1px 3px;border-radius:2px;transition:color 0.1s;}
     .run-remove:hover{color:var(--danger);}
 
+    /* SHOW MODE -- distraction-free performance view */
+    .show-mode .rs-actions,.show-mode .encore-bar,.show-mode .run-move,.show-mode .run-remove,.show-mode .key-sel{display:none!important;}
+    .show-mode .run-title{font-size:22px;font-weight:700;}
+    .show-mode .run-num{font-size:18px;}
+    .show-mode .run-song{padding:14px 13px;}
+    .show-mode .singer-btn{pointer-events:none;border-color:transparent;background:var(--accent-dim);color:var(--accent);cursor:default;}
+    .show-mode .flow-note.collapsed{display:none;}
+    .show-mode .flow-note-label{display:none!important;}
+    .show-mode .flow-note textarea{border:none;background:none;font-style:italic;color:var(--text);cursor:default;}
+
     /* SINGER ASSIGN */
     .singer-assign{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px;}
     .singer-btn{font-size:10px;padding:3px 8px;border-radius:2px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;transition:all 0.1s;}
@@ -445,6 +455,7 @@
         <input id="runsheet-name" type="text" placeholder="SHOW NAME"/>
         <span class="rs-meta" id="rs-meta">0 songs</span>
       </div>
+      <button id="show-mode-btn" class="btn btn-accent" onclick="toggleShowMode()">Show Mode</button>
       <div class="rs-actions">
         <button id="save-btn" class="btn btn-outline" onclick="saveGig()">Save</button>
         <button class="btn btn-outline" onclick="loadGig()">Load</button>
@@ -501,7 +512,7 @@ const FAMILY_COMPAT = {
 };
 
 let allSongs = [], sets = [{name:'Set 1',minutes:45}], runsheet = [];
-let availableSingers = [], encoreSelected = null, dragIndex = null;
+let availableSingers = [], encoreSelected = null, dragIndex = null, showModeOn = false;
 let bandConfig = {horns:'full',guitars:'full',keys:'full'};
 let currentStep = 1, currentTab = 'gig';
 let _encoreCandidates = [];
@@ -533,6 +544,12 @@ function updateLayout(){
   if(desk){ document.querySelectorAll('.tab-panel').forEach(p=>{p.style.display='flex';p.style.flexDirection='column';}); }
   else { showTab(currentTab); }
   renderLibrary();
+}
+function toggleShowMode(){
+  showModeOn=!showModeOn;
+  document.querySelector('.runsheet-panel').classList.toggle('show-mode',showModeOn);
+  document.getElementById('show-mode-btn').textContent=showModeOn?'Exit Show Mode':'Show Mode';
+  renderRunsheet();
 }
 function showTab(name){
   currentTab=name;
@@ -990,7 +1007,7 @@ function renderRunsheet(){
       +'<div class="singer-assign">'+singerBtns+'</div></div>'
       +'<div class="run-move"><button class="icon-btn" title="Move up" onclick="moveSong('+i+',-1)">^</button><button class="icon-btn" title="Move down" onclick="moveSong('+i+',1)">v</button></div>'
       +'<button class="run-remove" onclick="removeItem('+i+')">x</button></div>'
-      +'<div class="flow-note'+(noteVal?'':' collapsed')+'"><div class="flow-note-label" onclick="expandNote(this)">+ Show note / banter</div><textarea rows="2" placeholder="Show note / banter (saves automatically)" oninput="runsheet['+i+'].flowNote=this.value;saveShowNote(runsheet['+i+'].song[\'Song\'],this.value);autoResize(this)">'+esc(noteVal)+'</textarea></div>'
+      +'<div class="flow-note'+(noteVal?'':' collapsed')+'"><div class="flow-note-label" onclick="expandNote(this)">+ Show note / banter</div><textarea rows="2" placeholder="Show note / banter (saves automatically)"'+(showModeOn?' readonly':'')+' oninput="runsheet['+i+'].flowNote=this.value;saveShowNote(runsheet['+i+'].song[\'Song\'],this.value);autoResize(this)">'+esc(noteVal)+'</textarea></div>'
       +'</div>';
   });
   el.innerHTML=html; el.querySelectorAll('textarea').forEach(autoResize);
