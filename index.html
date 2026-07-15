@@ -885,7 +885,7 @@ function buildSetlist(){
 
   const gigName=document.getElementById('gig-name').value;
   if(gigName) document.getElementById('runsheet-name').value=gigName.toUpperCase();
-  checkKeyLocks(); renderRunsheet(); renderLibrary(); updatePrintHeader();
+  renderRunsheet(); renderLibrary(); updatePrintHeader();
   document.getElementById('encore-bar').style.display='block';
   document.getElementById('step-4').classList.add('complete');
   document.getElementById('chk-4').textContent='v';
@@ -921,9 +921,25 @@ function arrangeWithFlow(picked){
 }
 
 // -- KEY LOCK --
-function checkKeyLocks(){ runsheet.forEach(r=>{ if(r.type!=='song') return; const k=r.song['Key']||''; r.needsKeyLock=/or|\/|\|/i.test(k)&&k.length>2; r.lockedKey=r.lockedKey||''; }); }
-function lockKey(i,val){ runsheet[i].lockedKey=val; runsheet[i].needsKeyLock=false; renderRunsheet(); }
-function parseKeyOptions(k){ return k.split(/\s*(?:or|\/|\|)\s*/i).map(x=>x.trim()).filter(Boolean); }
+function lockKey(i,val){ runsheet[i].lockedKey=val; renderRunsheet(); }
+function parseKeyOptions(k){
+  return (k||'').split(/\s*(?:or|\/|\|)\s*/i).map(x=>x.trim()).filter(Boolean).map(seg=>{
+    const m=seg.match(/^([^:]+):\s*(.+)$/);
+    return m?{singer:m[1].trim(),key:m[2].trim()}:{singer:null,key:seg};
+  });
+}
+function resolveKey(item){
+  const opts=parseKeyOptions(item.song['Key']);
+  if(opts.length<=1) return {key:opts[0]?opts[0].key:'',ambiguous:false,options:opts};
+  if(item.lockedKey) return {key:item.lockedKey,ambiguous:false,options:opts};
+  const tagged=opts.filter(o=>o.singer);
+  if(tagged.length){
+    const assigned=item.singers&&item.singers.length?item.singers:(item.singer?[item.singer]:[]);
+    const matches=[...new Set(tagged.filter(o=>assigned.some(a=>a.toLowerCase()===o.singer.toLowerCase())).map(o=>o.key))];
+    if(matches.length===1) return {key:matches[0],ambiguous:false,options:opts};
+  }
+  return {key:'',ambiguous:true,options:opts};
+}
 
 // -- RENDER RUNSHEET --
 function renderRunsheet(){
@@ -944,10 +960,10 @@ function renderRunsheet(){
     if(!setsSeen.has(si)){ setsSeen.add(si); const sd=setData[si]||{count:0,secs:0}; const setObj=sets[si]||{name:'Set '+(si+1),minutes:45}; const smins=Math.round(sd.secs/60); const over=smins>setObj.minutes?' -- '+( smins-setObj.minutes)+'m over':''; html+='<div class="set-block-header"><span class="set-block-title">'+esc(setObj.name)+'</span><span class="set-block-meta">'+sd.count+' songs &middot; '+smins+'/'+setObj.minutes+'min'+over+'</span></div>'; }
     num++;
     const s=item.song; const hasHorns=!!(s['Horns']||'').trim();
-    const key=item.lockedKey||(item.needsKeyLock?'':s['Key']||''); const rawKey=s['Key']||''; const needsLock=item.needsKeyLock&&!item.lockedKey;
+    const resolved=resolveKey(item);
     let keyDisplay='';
-    if(needsLock){ const opts=parseKeyOptions(rawKey); keyDisplay='<select class="key-sel" onchange="lockKey('+i+',this.value)"><option value="">KEY?</option>'+opts.map(k=>'<option value="'+k+'">'+k+'</option>').join('')+'</select>'; }
-    else{ keyDisplay='<span style="color:'+(key?'var(--accent)':'var(--muted)')+';font-size:10px;font-family:JetBrains Mono,monospace">'+(key||'--')+'</span>'; }
+    if(resolved.ambiguous){ keyDisplay='<select class="key-sel" onchange="lockKey('+i+',this.value)"><option value="">KEY?</option>'+resolved.options.map(o=>'<option value="'+esc(o.key)+'">'+(o.singer?esc(o.singer)+': ':'')+esc(o.key)+'</option>').join('')+'</select>'; }
+    else{ keyDisplay='<span style="color:'+(resolved.key?'var(--accent)':'var(--muted)')+';font-size:10px;font-family:JetBrains Mono,monospace">'+(resolved.key||'--')+'</span>'; }
 
     const kb=findKB(s['Song']); const primary=kb&&kb.primary_singer;
     const assigned=item.singers&&item.singers.length?item.singers:(item.singer?[item.singer]:[]);
@@ -968,11 +984,12 @@ function renderRunsheet(){
       +'</div>';
   });
   el.innerHTML=html; el.querySelectorAll('textarea').forEach(autoResize);
+  el.onclick=function(e){var b=e.target.closest('.singer-btn');if(b)toggleSinger(+b.dataset.setidx,b.dataset.singer);};
 }
 function autoResize(ta){ ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; }
 
 // -- SINGER TOGGLE --
-function toggleSinger(i,singer){ const item=runsheet[i]; if(!item||item.type!=='song') return; if(!item.singers) item.singers=[item.singer||'']; if(item.singers.includes(singer)) item.singers=item.singers.filter(s=>s!==singer); else item.singers.push(singer); if(!item.singers.length) item.singers=[singer]; item.singer=item.singers.join(' / '); renderRunsheet(); }
+function toggleSinger(i,singer){ const item=runsheet[i]; if(!item||item.type!=='song') return; if(!item.singers) item.singers=[item.singer||'']; if(item.singers.includes(singer)) item.singers=item.singers.filter(s=>s!==singer); else item.singers.push(singer); if(!item.singers.length) item.singers=[singer]; item.singer=item.singers.join(' / '); item.lockedKey=''; renderRunsheet(); }
 
 // -- DRAG AND DROP --
 function dragStart(i){ dragIndex=i; }
@@ -997,7 +1014,6 @@ function suggestEncores(){
     const singer=(kb&&kb.primary_singer&&availableSingers.includes(kb.primary_singer))?kb.primary_singer:availableSingers.find(sg=>{const v=(s[sg]||'').toUpperCase();return v==='X';})||'?';
     return '<button class="encore-opt'+(encoreSelected===s['Song']?' selected':'')+'" onclick="selectEncore('+idx+')">'+esc(s['Song'])+(hasHorns?'<span class="horn-star">*</span>':'')+'<span class="enc-singer">'+singer+'</span></button>';
   }).join('');
-  el.onclick=function(e){var b=e.target.closest('.singer-btn');if(b)toggleSinger(+b.dataset.setidx,b.dataset.singer);};
 }
 function selectEncore(i){ encoreSelected=_encoreCandidates[i]&&_encoreCandidates[i].song['Song']||null; suggestEncores(); }
 function clearEncore(){ encoreSelected=null; document.getElementById('encore-slot').innerHTML='Build your setlist first, then click Suggest'; }
