@@ -20,6 +20,7 @@
     .hdr-sub{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:0.5px;}
     .hdr-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
     #status{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+    .sheet-url-input{background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;padding:5px 8px;width:200px;font-family:'Inter',sans-serif;}
 
     /* BUTTONS */
     .btn{border:none;border-radius:4px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.1s;}
@@ -249,6 +250,8 @@
     <div class="hdr-sub">US Army Band &quot;Pershing&apos;s Own&quot;</div>
   </div>
   <div class="hdr-right">
+    <input type="text" id="sheet-url-input" class="sheet-url-input" placeholder="Paste Google Sheet link..."/>
+    <button class="btn btn-outline" onclick="loadFromSheetInput()">Load Sheet</button>
     <input type="file" id="file-input" accept=".csv,.xlsx,.xls" onchange="loadFile(this)" style="display:none"/>
     <button class="btn btn-accent" onclick="document.getElementById('file-input').click()">Load Songs (CSV / XLSX)</button>
     <span id="status">Loading sheet...</span>
@@ -492,6 +495,7 @@ let currentStep = 1, currentTab = 'gig';
 let _encoreCandidates = [];
 const SHOW_NOTES_KEY = 'drsetlist_shownotes';
 const LASTFM_CACHE_KEY = 'drsetlist_lfm';
+const SHEET_URL_KEY = 'drsetlist_sheet_url';
 let showNotes = {}, lastfmCache = {};
 try { showNotes = JSON.parse(localStorage.getItem(SHOW_NOTES_KEY)||'{}'); } catch(e){}
 try { lastfmCache = JSON.parse(localStorage.getItem(LASTFM_CACHE_KEY)||'{}'); } catch(e){}
@@ -500,7 +504,9 @@ window.addEventListener('load', () => {
   renderSets();
   updateLayout();
   window.addEventListener('resize', updateLayout);
-  loadSheetFromWorker();
+  const savedSheetUrl=localStorage.getItem(SHEET_URL_KEY);
+  if(savedSheetUrl){ document.getElementById('sheet-url-input').value=savedSheetUrl; loadSheetFromUrl(savedSheetUrl,{persist:false}); }
+  else loadSheetFromWorker();
 });
 
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -609,6 +615,41 @@ async function loadSheetFromWorker(){
   } catch(e){
     setStatus('Auto-load failed -- use Load button',true);
     document.getElementById('song-list').innerHTML='<div class="empty-msg">Could not auto-load.<br>Click "Load Songs (CSV / XLSX)" above.</div>';
+  }
+}
+
+function sheetUrlToCsvUrl(url){
+  const m=(url||'').match(/\/d\/([a-zA-Z0-9-_]+)/);
+  if(!m) return null;
+  const gidM=(url||'').match(/[#&?]gid=(\d+)/);
+  return 'https://docs.google.com/spreadsheets/d/'+m[1]+'/export?format=csv'+(gidM?'&gid='+gidM[1]:'');
+}
+
+function loadFromSheetInput(){
+  const raw=document.getElementById('sheet-url-input').value.trim();
+  if(!raw){ setStatus('Paste a Google Sheet link first',true); return; }
+  loadSheetFromUrl(raw,{persist:true});
+}
+
+async function loadSheetFromUrl(rawUrl,{persist}={}){
+  const csvUrl=sheetUrlToCsvUrl(rawUrl);
+  if(!csvUrl){ setStatus('Doesn\'t look like a Google Sheets link',true); return; }
+  setStatus('Loading sheet...');
+  try {
+    const res=await fetch(csvUrl);
+    if(!res.ok) throw new Error('Sheet fetch error '+res.status);
+    const csv=await res.text();
+    if(!csv||csv.length<10) throw new Error('Empty');
+    const songs=parseCSV(csv);
+    if(!songs.length) throw new Error('No songs');
+    allSongs=songs;
+    populateGenres(); renderLibrary();
+    document.getElementById('song-total').textContent=allSongs.length+' songs';
+    setStatus('v '+allSongs.length+' songs loaded from sheet');
+    if(persist) localStorage.setItem(SHEET_URL_KEY,rawUrl);
+  } catch(e){
+    setStatus('Could not load that sheet -- make sure it\'s shared as "Anyone with the link can view"',true);
+    if(!allSongs.length) document.getElementById('song-list').innerHTML='<div class="empty-msg">Could not load sheet.<br>Click "Load Songs (CSV / XLSX)" above.</div>';
   }
 }
 
