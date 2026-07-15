@@ -21,6 +21,8 @@
     .hdr-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
     #status{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
     .sheet-url-input{background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;padding:5px 8px;width:200px;font-family:'Inter',sans-serif;}
+    .hdr-load-controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+    @media(max-width:959px){ header.runsheet-active .hdr-load-controls{display:none;} }
 
     /* BUTTONS */
     .btn{border:none;border-radius:4px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.1s;}
@@ -46,6 +48,7 @@
       .tab-bar{display:flex;border-bottom:2px solid var(--border);background:var(--surface);flex-shrink:0;}
       .tab-panel{display:none;flex:1;overflow-y:auto;}
       .tab-panel.active{display:flex;flex-direction:column;}
+      .run-move .icon-btn,.run-remove{font-size:18px;padding:6px 10px;}
     }
 
     /* TAB BAR */
@@ -198,6 +201,9 @@
     .flow-note{padding:3px 13px 7px 43px;}
     .flow-note textarea{width:100%;background:transparent;border:none;border-left:2px solid var(--border);color:var(--muted);font-size:11px;font-family:'Inter',sans-serif;padding:3px 7px;outline:none;resize:none;line-height:1.5;min-height:28px;transition:border-color 0.1s;}
     .flow-note textarea:focus{border-color:var(--ai);color:var(--text);background:var(--surface2);}
+    .flow-note.collapsed textarea{display:none;}
+    .flow-note-label{display:none;color:var(--muted);font-size:11px;cursor:pointer;padding:3px 7px;border-left:2px solid var(--border);}
+    .flow-note.collapsed .flow-note-label{display:block;}
 
     /* BREAK */
     .break-block{padding:6px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--surface2);}
@@ -252,10 +258,12 @@
     <div class="hdr-sub">US Army Band &quot;Pershing&apos;s Own&quot;</div>
   </div>
   <div class="hdr-right">
-    <input type="text" id="sheet-url-input" class="sheet-url-input" placeholder="Paste Google Sheet link..."/>
-    <button class="btn btn-outline" onclick="loadFromSheetInput()">Load Sheet</button>
-    <input type="file" id="file-input" accept=".csv,.xlsx,.xls" onchange="loadFile(this)" style="display:none"/>
-    <button class="btn btn-accent" onclick="document.getElementById('file-input').click()">Load Songs (CSV / XLSX)</button>
+    <div class="hdr-load-controls" id="hdr-load-controls">
+      <input type="text" id="sheet-url-input" class="sheet-url-input" placeholder="Paste Google Sheet link..."/>
+      <button class="btn btn-outline" onclick="loadFromSheetInput()">Load Sheet</button>
+      <input type="file" id="file-input" accept=".csv,.xlsx,.xls" onchange="loadFile(this)" style="display:none"/>
+      <button class="btn btn-accent" onclick="document.getElementById('file-input').click()">Load Songs (CSV / XLSX)</button>
+    </div>
     <span id="status">Loading sheet...</span>
   </div>
 </header>
@@ -530,6 +538,7 @@ function showTab(name){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
+  document.querySelector('header').classList.toggle('runsheet-active',name==='runsheet');
   document.querySelectorAll('.tab-btn').forEach(b=>{ if(b.textContent.toLowerCase()===name.toLowerCase()||
     (name==='gig'&&b.textContent==='Gig')||(name==='library'&&b.textContent==='Songs')||(name==='runsheet'&&b.textContent==='Setlist')) b.classList.add('active'); });
 }
@@ -980,13 +989,14 @@ function renderRunsheet(){
       +'<div class="singer-assign">'+singerBtns+'</div></div>'
       +'<div class="run-move"><button class="icon-btn" title="Move up" onclick="moveSong('+i+',-1)">^</button><button class="icon-btn" title="Move down" onclick="moveSong('+i+',1)">v</button></div>'
       +'<button class="run-remove" onclick="removeItem('+i+')">x</button></div>'
-      +'<div class="flow-note"><textarea rows="2" placeholder="Show note / banter (saves automatically)" oninput="runsheet['+i+'].flowNote=this.value;saveShowNote(runsheet['+i+'].song["Song"],this.value);autoResize(this)">'+esc(noteVal)+'</textarea></div>'
+      +'<div class="flow-note'+(noteVal?'':' collapsed')+'"><div class="flow-note-label" onclick="expandNote(this)">+ Show note / banter</div><textarea rows="2" placeholder="Show note / banter (saves automatically)" oninput="runsheet['+i+'].flowNote=this.value;saveShowNote(runsheet['+i+'].song[\'Song\'],this.value);autoResize(this)">'+esc(noteVal)+'</textarea></div>'
       +'</div>';
   });
   el.innerHTML=html; el.querySelectorAll('textarea').forEach(autoResize);
   el.onclick=function(e){var b=e.target.closest('.singer-btn');if(b)toggleSinger(+b.dataset.setidx,b.dataset.singer);};
 }
 function autoResize(ta){ ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; }
+function expandNote(label){ label.closest('.flow-note').classList.remove('collapsed'); label.closest('.flow-note').querySelector('textarea').focus(); }
 
 // -- SINGER TOGGLE --
 function toggleSinger(i,singer){ const item=runsheet[i]; if(!item||item.type!=='song') return; if(!item.singers) item.singers=[item.singer||'']; if(item.singers.includes(singer)) item.singers=item.singers.filter(s=>s!==singer); else item.singers.push(singer); if(!item.singers.length) item.singers=[singer]; item.singer=item.singers.join(' / '); item.lockedKey=''; renderRunsheet(); }
