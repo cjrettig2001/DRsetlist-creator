@@ -1197,45 +1197,50 @@ function exportSetlistDocx(){
   const rhythmNames=checked.filter(v=>!SINGER_COLS.includes(v));
 
   const P=[]; // paragraphs
-  const plain=t=>P.push({runs:[{text:t}]});
-  const bold=t=>P.push({runs:[{text:t,bold:true}]});
+  const para=runs=>P.push({runs});
+  const plain=t=>para([{text:t}]);
+  const bold=t=>para([{text:t,bold:true}]);
 
   bold([gigDate,gigLocation].filter(Boolean).join(' '));
   plain('Vocals: '+singerNames.join(', '));
   plain('Rhythm: '+rhythmNames.join(', '));
-  plain('Horns: '+(bandConfig.horns==='full'?'TBD':''));
-  plain('Producer: '+gigProducer);
-  plain('_'.repeat(55));
+  let hasExtraHeaderLine=false;
+  if(bandConfig.horns==='full'){ plain('Horns: TBD'); hasExtraHeaderLine=true; }
+  if(gigProducer){ plain('Producer: '+gigProducer); hasExtraHeaderLine=true; }
+  if(hasExtraHeaderLine) plain('_'.repeat(55));
 
   const banterNotes=[]; // {singer, prev, next, text}
-  let curSet=-1; let prevSongTitle=null;
+  let curSet=-1;
+  const multiSet=sets.length>1;
+  if(!multiSet) bold('SETLIST');
   runsheet.forEach((item,i)=>{
     if(item.type==='break'){ P.push({runs:[{text:''}]}); return; }
-    if(item.setIndex!==curSet){
+    if(multiSet&&item.setIndex!==curSet){
       curSet=item.setIndex;
       const setObj=sets[curSet]||{name:'Set '+(curSet+1),minutes:45};
       const m=setObj.minutes; const dur=(m>=60&&m%60===0)?(m/60)+'hr':m+' min';
       bold((setObj.name||'Set '+(curSet+1))+' ('+dur+')');
-      prevSongTitle=null;
     }
     const s=item.song; const hasHorns=!!(s['Horns']||'').trim();
     const assigned=(item.singers&&item.singers.length?item.singers:(item.singer?[item.singer]:[])).join('/');
     const nextIsSongSameSet=runsheet[i+1]&&runsheet[i+1].type==='song'&&runsheet[i+1].setIndex===item.setIndex;
     const segue=nextIsSongSameSet&&!item.flowNote;
-    plain(s['Song']+(hasHorns?'*':'')+' - '+assigned+(segue?'>>>':''));
+    para([{text:s['Song'],bold:true},{text:(hasHorns?'*':'')+' - '+assigned+(segue?'>>>':'')}]);
     if(item.flowNote){
       P.push({runs:[{text:'*'+(assigned||'')+' Talks - see notes*',color:'38761d'}]});
       const nextTitle=runsheet[i+1]&&runsheet[i+1].type==='song'?runsheet[i+1].song['Song']:null;
       banterNotes.push({singer:assigned,prev:s['Song'],next:nextTitle,text:item.flowNote});
     }
-    prevSongTitle=s['Song'];
   });
-  if(encoreSelected) plain('Encore - '+encoreSelected);
+  if(encoreSelected) para([{text:'Encore -',italic:true},{text:' '+encoreSelected,bold:true}]);
 
   plain(''); plain('');
   bold('VOCAL NOTES');
+  plain('***Red Italicized line needs to be exact. This cues band.***');
+  plain('***bold black is direction, not words**');
+  plain('');
   banterNotes.forEach(n=>{
-    bold('— '+(n.singer||'')+' after "'+n.prev+'"'+(n.next?' before "'+n.next+'"':''));
+    plain((n.singer||'')+' after "'+n.prev+'"'+(n.next?' before "'+n.next+'"':''));
     plain(n.text);
     plain('');
   });
