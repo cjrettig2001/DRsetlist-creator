@@ -1285,75 +1285,119 @@ function exportSetlistDocx(){
 }
 
 // -- AI BANTER SUGGESTIONS --
-const BANTER_BAND_BACKGROUND = 'Downrange is the popular-music ensemble of The U.S. Army Band "Pershing\'s Own." It plays rock, pop, country, R&B, and patriotic arrangements for troops and the public. It was formed after a December 2002 USO tour to Uzbekistan, Kuwait, and Afghanistan with country artist Darryl Worley -- the first time since 1945 the band performed in a foreign theater of operations -- and its mission centers on connecting with audiences and boosting morale through music, both overseas and at home. Typical lineup: 2-4 mixed vocalists, 2 keyboards, drums, bass, 2 lead guitars, sometimes a horn line.';
-const BANTER_EXAMPLES = [
-  'Hello, Baltimore! How\'s everybody doing today!? We are The US Army Band Downrange from Fort Myer, Virginia and it\'s an honor to be here with you all! We have a great collection of music for you, so feel free to dance, sing along, and have a good time with us! Are you ready, Baltimore?',
-  'Thank you! We\'ll be back after a short break!',
-  'How are you feeling, DC!? We are the US Army Band Downrange coming from Fort Myer, VA and we are so happy to be here with you today! We have a great set up of music for you, so feel free to sing along, dance, clap your hands, whatever you feel! Enjoy the show!',
-  'We thank you for your service.'
-];
-async function suggestBanterPoints(){
+// Fully self-contained -- no network call, no API key, no Worker route.
+// Style informed by real stage-banter guidance (keep it short, personalize with the
+// venue/city, introduce yourself once) plus the actual voice of this band's own setlists.
+const BANTER_TEMPLATES = {
+  opener: [
+    ctx=>'Hello, '+(ctx.venue||'everybody')+'! How\'s everybody doing today? We are The US Army Band Downrange from Fort Myer, Virginia, and it\'s an honor to be here with you! Feel free to sing along, dance, and have a good time with us!',
+    ctx=>(ctx.venue||'Hey there')+', are you ready?! We\'re so glad to be here with you today -- we\'ve got a great set of music for you, so sit back, relax, and enjoy the show!',
+    ctx=>'How\'s everybody doing? We are Downrange, the popular-music ensemble of the US Army Band, and we\'re thrilled to be here at '+(ctx.venue||'this show')+' with you!',
+  ],
+  crowdCheck: [
+    ()=>'Are you having a good time so far? Let\'s keep it going!',
+    ()=>'How\'s everybody feeling? Make some noise if you\'re with us!',
+    ()=>'Alright, are we having a good time!? That\'s what we like to hear!',
+  ],
+  gearChange: [
+    ()=>'Give us just a second to switch things up -- we\'ll be right back!',
+    ()=>'Bear with us while we make a quick change up here!',
+    ()=>'One moment while we get set up for the next one!',
+  ],
+  setBreak: [
+    ()=>'Thank you! We\'ll be right back after a short break!',
+    ()=>'We\'re gonna take a quick break -- don\'t go anywhere, we\'ll be right back!',
+  ],
+  setReturn: [
+    ()=>'Alright, we\'re back! Are you ready to keep this party going?',
+    ()=>'Thanks for sticking with us -- let\'s keep the night going!',
+  ],
+  military: [
+    ()=>'We want to thank you all for your service.',
+    ()=>'Make some noise for the men and women serving our country!',
+  ],
+  outro: [
+    ctx=>'Thank you so much for having us out tonight'+(ctx.venue?', '+ctx.venue:'')+'! This next one\'s our last for the night!',
+    ()=>'We\'ve had such a great time with you tonight! Thank you for sharing this time with us -- this is our last song of the night!',
+  ],
+};
+function pickBanterVariant(bank,used){
+  const fresh=bank.filter(fn=>!used.has(fn));
+  const pool=fresh.length?fresh:bank;
+  const fn=pool[Math.floor(Math.random()*pool.length)];
+  used.add(fn);
+  return fn;
+}
+function suggestBanterPoints(){
   const songs=runsheet.filter(r=>r.type==='song');
   if(!songs.length){ alert('Build a setlist first.'); return; }
-  const btn=document.getElementById('banter-btn'); const origLabel=btn.textContent;
-  btn.textContent='Thinking...'; btn.disabled=true;
-  try{
-    const activeTags=id=>[...document.querySelectorAll('#'+id+' .tag.active')].map(t=>t.textContent);
-    const gigContext={
-      venue:document.getElementById('gig-location').value||'',
-      producer:document.getElementById('gig-producer').value||'',
-      eventTypes:activeTags('event-type-tags'),
-      audience:activeTags('climate-tags'),
-      energy:activeTags('energy-tags'),
-      notes:document.getElementById('gig-notes').value||''
-    };
-    const runsheetPayload=runsheet.map((item,i)=>{
-      if(item.type==='break') return {index:i,type:'break'};
-      const next=runsheet[i+1];
-      const gearChange=!!(item.song['Guitar']&&next&&next.type==='song'&&next.song['Guitar']&&item.song['Guitar']!==next.song['Guitar']);
-      return {
-        index:i,type:'song',
-        title:item.song['Song'],artist:item.song['Artist']||'',
-        singers:(item.singers&&item.singers.length?item.singers:(item.singer?[item.singer]:[])),
-        setIndex:item.setIndex,
-        lastInSet:!next||next.type==='break'||next.setIndex!==item.setIndex,
-        hasNote:!!item.flowNote,
-        gearChange
-      };
-    });
-    const prompt=BANTER_BAND_BACKGROUND+'\n\n'
-      +'Example banter style from this band\'s real shows:\n'+BANTER_EXAMPLES.map(t=>'- "'+t+'"').join('\n')+'\n\n'
-      +'Gig context: '+JSON.stringify(gigContext)+'\n\n'
-      +'Setlist (in order): '+JSON.stringify(runsheetPayload)+'\n\n'
-      +'Pick a handful of natural spots for banter -- NOT every song. Prioritize, in order: '
-      +'(1) gearChange:true gaps, since the band needs cover time for an instrument/patch change, '
-      +'(2) set transitions, (3) energy shifts. Skip any song where hasNote is already true. '
-      +'Write 1-3 sentence banter for each spot in the example style above, personalized to the gig context. '
-      +'Only ONE suggestion for the whole show (at most) should mention the band\'s own background/mission/history -- '
-      +'reserve that for the opening greeting if used at all; every other suggestion should be about the music, '
-      +'the crowd, or the moment, not about the band itself. '
-      +'Respond with ONLY valid JSON, no other text: {"suggestions":[{"index":<runsheet index the banter follows>,"text":"..."}]}';
-    const res=await fetch('https://dr-setlist.cjrettig2001.workers.dev/banter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
-    if(!res.ok) throw new Error('Worker error '+res.status);
-    const data=await res.json();
-    const suggestions=data.suggestions||[];
-    if(!suggestions.length){ alert('No banter suggestions came back.'); return; }
-    let applied=0;
-    suggestions.forEach(sug=>{
-      const item=runsheet[sug.index];
-      if(item&&item.type==='song'&&!item.flowNote&&sug.text){
-        item.flowNote=sug.text;
-        saveShowNote(item.song['Song'],sug.text);
-        applied++;
+  const activeTags=id=>{ const el=document.getElementById(id); return el?[...el.querySelectorAll('.tag.active')].map(t=>t.textContent):[]; };
+  const ctx={
+    venue:document.getElementById('gig-location').value||'',
+    eventTypes:activeTags('event-type-tags'),
+    audience:activeTags('climate-tags'),
+  };
+  const isMilitaryGig=ctx.eventTypes.some(t=>/military|ceremony/i.test(t))||ctx.audience.some(t=>/military|veteran/i.test(t))
+    ||songs.some(r=>(r.song['Patriotic']||'').trim());
+
+  const used=new Set();
+  let applied=0;
+  const setNote=(item,bank)=>{ const text=pickBanterVariant(bank,used)(ctx); item.flowNote=text; saveShowNote(item.song['Song'],text); applied++; };
+
+  // Set boundaries: always covered if not already noted
+  runsheet.forEach((item,i)=>{
+    if(item.type!=='break') return;
+    const prev=runsheet[i-1], next=runsheet[i+1];
+    if(prev&&prev.type==='song'&&!prev.flowNote) setNote(prev,BANTER_TEMPLATES.setBreak);
+    if(next&&next.type==='song'&&!next.flowNote) setNote(next,BANTER_TEMPLATES.setReturn);
+  });
+
+  // Outro: the very last song of the whole show
+  const lastSong=[...runsheet].reverse().find(r=>r.type==='song');
+  if(lastSong&&!lastSong.flowNote) setNote(lastSong,BANTER_TEMPLATES.outro);
+
+  // Mid-set gaps: score by gear change, energy shift, historical role transition
+  const MIN_GAP=3;
+  const candidates=[];
+  runsheet.forEach((item,i)=>{
+    if(item.type!=='song'||item.flowNote) return;
+    const next=runsheet[i+1];
+    if(!next||next.type!=='song'||next.setIndex!==item.setIndex) return;
+    const gearChange=!!(item.song['Guitar']&&next.song['Guitar']&&item.song['Guitar']!==next.song['Guitar']);
+    const energyDelta=Math.abs(getEnergyLevel(next.song)-getEnergyLevel(item.song));
+    const roleBoost=(getRole(item.song)==='CLOSER'||getRole(next.song)==='OPENER')?1:0;
+    const score=(gearChange?10:0)+energyDelta*2+roleBoost;
+    candidates.push({index:i,score,gearChange});
+  });
+  candidates.sort((a,b)=>b.score-a.score);
+  const chosen=[];
+  candidates.forEach(c=>{
+    if(c.score<=0) return;
+    if(!c.gearChange&&chosen.some(x=>Math.abs(x.index-c.index)<MIN_GAP)) return;
+    chosen.push(c);
+  });
+  // Guarantee an early "opener" slot near the top of the show if nothing landed there
+  if(!chosen.some(c=>c.index<=2)){
+    for(let i=0;i<=Math.min(2,runsheet.length-1);i++){
+      const item=runsheet[i], next=runsheet[i+1];
+      if(item&&item.type==='song'&&!item.flowNote&&next&&next.type==='song'&&next.setIndex===item.setIndex){
+        chosen.push({index:i,score:0,gearChange:false}); break;
       }
-    });
-    renderRunsheet();
-    setStatus('Added '+applied+' banter suggestion(s)');
-  } catch(e){
-    alert('Could not get banter suggestions -- make sure the /banter route is set up on your Worker.');
-  } finally {
-    btn.textContent=origLabel; btn.disabled=false;
+    }
   }
+  chosen.sort((a,b)=>a.index-b.index);
+  chosen.forEach((c,ci)=>{
+    const item=runsheet[c.index]; if(item.flowNote) return;
+    let bank;
+    if(ci===0) bank=BANTER_TEMPLATES.opener;
+    else if(c.gearChange) bank=BANTER_TEMPLATES.gearChange;
+    else if(isMilitaryGig&&ci===Math.floor(chosen.length/2)) bank=BANTER_TEMPLATES.military;
+    else bank=BANTER_TEMPLATES.crowdCheck;
+    setNote(item,bank);
+  });
+
+  renderRunsheet();
+  setStatus('Added '+applied+' banter suggestion(s)');
 }
 </script>
 </body>
