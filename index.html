@@ -223,6 +223,12 @@
     .flow-note-label{display:none;color:var(--muted);font-size:11px;cursor:pointer;padding:3px 7px;border-left:2px solid var(--border);}
     .flow-note.collapsed .flow-note-label{display:block;}
 
+    /* SUGGEST SONG SWAP */
+    .run-item.swap-target{background:rgba(240,192,64,0.08);border-left:3px solid var(--accent);}
+    .swap-suggestion{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 13px 10px 43px;font-size:11px;color:var(--text);}
+    .swap-scores{color:var(--muted);font-size:10px;font-family:'JetBrains Mono',monospace;}
+    .swap-suggestion .btn{font-size:10px;padding:3px 8px;}
+
     /* BREAK */
     .break-block{padding:6px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--surface2);}
     .break-label{font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:1px;color:var(--muted);}
@@ -423,6 +429,7 @@
         <button class="btn btn-outline" onclick="exportCSV()">CSV</button>
         <button class="btn btn-outline" onclick="exportSetlistDocx()">DOCX</button>
         <button id="banter-btn" class="btn btn-outline" onclick="suggestBanterPoints()">Suggest Banter</button>
+        <button class="btn btn-outline" onclick="suggestSongReplacement()">Suggest Song</button>
         <button class="btn btn-outline" onclick="clearRunsheet()">Clear</button>
         <button class="btn btn-outline" onclick="newGig()">New Gig</button>
         <button class="btn btn-accent" onclick="updatePrintHeader();window.print()">Print</button>
@@ -521,7 +528,7 @@ const FAMILY_COMPAT = {
 };
 
 let allSongs = [], sets = [{name:'Set 1',minutes:45}], runsheet = [];
-let availableSingers = [], encoreSelected = null, dragIndex = null, showModeOn = false;
+let availableSingers = [], encoreSelected = null, dragIndex = null, showModeOn = false, songSwapSuggestion = null, songSwapDismissed = [];
 let bandConfig = {horns:'full',guitars:'full',keys:'full'};
 let currentStep = 1, currentTab = 'gig';
 let _encoreCandidates = [];
@@ -1011,8 +1018,9 @@ function renderRunsheet(){
     const singerBtns=singerPool.map(sg=>'<button class="singer-btn'+(assigned.includes(sg)?' active':'')+'" data-setidx="'+i+'" data-singer="'+sg+'">'+(sg.split(' ')[0])+(sg===primary?'*':'')+'</button>').join('');
     const detail=[esc(s['Artist']),esc(assigned.join(' / '))].filter(Boolean).join(' &middot; ');
     const noteVal=item.flowNote||'';
+    const isSwapTarget=songSwapSuggestion&&songSwapSuggestion.replaceIndex===i;
 
-    html+='<div class="run-item">'
+    html+='<div class="run-item'+(isSwapTarget?' swap-target':'')+'">'
       +'<div class="run-song" draggable="true" ondragstart="dragStart('+i+')" ondragover="dragOver(event,'+i+')" ondrop="drop(event,'+i+')" ondragleave="dragLeave(event)">'
       +'<span class="run-num">'+String(num).padStart(2,'0')+'</span>'
       +'<div style="flex:1;min-width:0"><div class="run-title">'+esc(s['Song'])+(hasHorns?'<span class="horn-star">*</span>':'')+' '+keyDisplay+'</div>'
@@ -1021,6 +1029,7 @@ function renderRunsheet(){
       +'<div class="run-move"><button class="icon-btn" title="Move up" onclick="moveSong('+i+',-1)">^</button><button class="icon-btn" title="Move down" onclick="moveSong('+i+',1)">v</button></div>'
       +'<button class="run-remove" onclick="removeItem('+i+')">x</button></div>'
       +'<div class="flow-note'+(noteVal?'':' collapsed')+'"><div class="flow-note-label" onclick="expandNote(this)">+ Show note / banter</div><textarea rows="2" placeholder="Show note / banter (saves automatically)"'+(showModeOn?' readonly':'')+' oninput="runsheet['+i+'].flowNote=this.value;saveShowNote(runsheet['+i+'].song[\'Song\'],this.value);autoResize(this)">'+esc(noteVal)+'</textarea></div>'
+      +(isSwapTarget?'<div class="swap-suggestion">Consider swapping for <strong>'+esc(songSwapSuggestion.candidate['Song'])+'</strong><span class="swap-scores">('+songSwapSuggestion.candidateScore+' vs '+songSwapSuggestion.replacedScore+')</span><button class="btn btn-accent" onclick="applySongSwap()">Swap</button><button class="btn btn-outline" onclick="dismissSongSwap()">Dismiss</button></div>':'')
       +'</div>';
   });
   el.innerHTML=html; el.querySelectorAll('textarea').forEach(autoResize);
@@ -1058,6 +1067,40 @@ function suggestEncores(){
 }
 function selectEncore(i){ encoreSelected=_encoreCandidates[i]&&_encoreCandidates[i].song['Song']||null; suggestEncores(); }
 function clearEncore(){ encoreSelected=null; document.getElementById('encore-slot').innerHTML='Build your setlist first, then click Suggest'; }
+
+// -- SUGGEST SONG / HIGHLIGHT REPLACE CANDIDATE --
+function suggestSongReplacement(){
+  const songItems=runsheet.map((r,i)=>({r,i})).filter(x=>x.r.type==='song');
+  if(!songItems.length){ alert('Build a setlist first.'); return; }
+  const inRs=new Set(songItems.map(x=>x.r.song['Song'].toLowerCase().trim()));
+  const worst=songItems.map(x=>({i:x.i,score:getGigScore(x.r.song)})).sort((a,b)=>a.score-b.score)[0];
+  const candidatePool=allSongs.filter(s=>!inRs.has(s['Song'].toLowerCase().trim()))
+    .filter(s=>!songSwapDismissed.includes(s['Song']))
+    .filter(s=>!availableSingers.length||availableSingers.some(sg=>{const v=(s[sg]||'').toUpperCase();return v==='X'||v==='X?';}))
+    .map(s=>({song:s,score:getGigScore(s)}))
+    .sort((a,b)=>b.score-a.score);
+  if(!candidatePool.length){ alert('No other eligible songs found to suggest.'); return; }
+  const best=candidatePool[0];
+  if(best.score<=worst.score){ alert('Nothing in the library scores higher than your weakest song right now.'); return; }
+  songSwapSuggestion={replaceIndex:worst.i,candidate:best.song,candidateScore:best.score,replacedScore:worst.score};
+  renderRunsheet();
+}
+function applySongSwap(){
+  if(!songSwapSuggestion) return;
+  const item=runsheet[songSwapSuggestion.replaceIndex];
+  if(!item||item.type!=='song'){ songSwapSuggestion=null; renderRunsheet(); return; }
+  const newSong=songSwapSuggestion.candidate;
+  const kb=findKB(newSong['Song']); const primary=kb&&kb.primary_singer;
+  const defaultSinger=primary&&availableSingers.includes(primary)?[primary]:availableSingers.filter(sg=>{const v=(newSong[sg]||'').toUpperCase();return v==='X'||v==='X?';}).slice(0,1);
+  item.song=newSong; item.singers=defaultSinger; item.singer=defaultSinger[0]||''; item.flowNote=''; item.lockedKey=''; item.needsKeyLock=false;
+  songSwapSuggestion=null;
+  renderRunsheet(); renderLibrary();
+}
+function dismissSongSwap(){
+  if(songSwapSuggestion) songSwapDismissed.push(songSwapSuggestion.candidate['Song']);
+  songSwapSuggestion=null;
+  renderRunsheet();
+}
 
 // -- LAST.FM --
 async function enrichWithLastFm(){
